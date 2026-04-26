@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>外卡收单账户系统详细需求文档 v1.0</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #1a1a2e; font-size: 14px; }
+
+  /* ===== NAVIGATION ===== */
+  .doc-nav { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: #001529; overflow-y: auto; z-index: 100; }
+  .doc-nav .nav-logo { padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .doc-nav .nav-logo h2 { color: #fff; font-size: 14px; font-weight: 600; line-height: 1.4; }
+  .doc-nav .nav-logo span { color: rgba(255,255,255,0.45); font-size: 12px; }
+  .doc-nav ul { list-style: none; padding: 8px 0; }
+  .doc-nav ul li a { display: block; padding: 8px 24px; color: rgba(255,255,255,0.65); font-size: 13px; text-decoration: none; transition: all 0.2s; }
+  .doc-nav ul li a:hover, .doc-nav ul li a.active { color: #1890ff; background: rgba(24,144,255,0.1); }
+  .doc-nav ul li.nav-group > a { color: rgba(255,255,255,0.35); font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; pointer-events: none; padding-top: 16px; }
+  .doc-nav ul li.nav-sub > a { padding-left: 36px; font-size: 12px; }
+
+  /* ===== MAIN CONTENT ===== */
+  .doc-main { margin-left: 260px; padding: 32px; min-height: 100vh; }
+  .doc-section { background: #fff; border-radius: 8px; margin-bottom: 32px; padding: 32px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .doc-section h1 { font-size: 28px; font-weight: 700; color: #0a0a1a; margin-bottom: 8px; }
+  .doc-section h2 { font-size: 20px; font-weight: 600; color: #0a0a1a; margin: 28px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #1890ff; }
+  .doc-section h3 { font-size: 16px; font-weight: 600; color: #262626; margin: 20px 0 12px; }
+  .doc-section h4 { font-size: 14px; font-weight: 600; color: #595959; margin: 16px 0 8px; }
+  .doc-section p { color: #595959; line-height: 1.8; margin-bottom: 12px; }
+  .doc-section ul, .doc-section ol { padding-left: 20px; color: #595959; line-height: 2; }
+  
+  /* doc meta */
+  .doc-meta { display: flex; gap: 24px; margin: 16px 0 24px; flex-wrap: wrap; }
+  .doc-meta .meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #8c8c8c; }
+  .doc-meta .meta-item strong { color: #262626; }
+  .version-badge { display: inline-block; background: #1890ff; color: #fff; padding: 2px 10px; border-radius: 10px; font-size: 12px; margin-left: 12px; }
+
+  /* ===== TABLES ===== */
+  .req-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+  .req-table th { background: #e6f7ff; color: #0050b3; font-weight: 600; padding: 10px 14px; text-align: left; border: 1px solid #bae0ff; }
+  .req-table td { padding: 9px 14px; border: 1px solid #f0f0f0; vertical-align: top; line-height: 1.6; }
+  .req-table tr:nth-child(even) td { background: #fafafa; }
+  .req-table tr:hover td { background: #e6f7ff; }
+  .req-table td code { background: #f5f5f5; padding: 1px 6px; border-radius: 3px; font-size: 12px; font-family: monospace; color: #d46b08; }
+
+  /* ===== TAGS / BADGES ===== */
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; margin: 2px; }
+  .tag-p0 { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; }
+  .tag-p1 { background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; }
+  .tag-p2 { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+  .tag-blue { background: #e6f7ff; color: #0050b3; border: 1px solid #91d5ff; }
+  .tag-purple { background: #f9f0ff; color: #531dab; border: 1px solid #d3adf7; }
+
+  /* ===== PROTOTYPE FRAMES ===== */
+  .proto-container { border: 1px solid #d9d9d9; border-radius: 8px; overflow: hidden; margin: 20px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .proto-bar { background: #f5f5f5; padding: 8px 16px; border-bottom: 1px solid #d9d9d9; display: flex; align-items: center; gap: 8px; }
+  .proto-bar .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .proto-bar .dot-r { background: #ff5f57; }
+  .proto-bar .dot-y { background: #febc2e; }
+  .proto-bar .dot-g { background: #28c840; }
+  .proto-bar .url { margin-left: 12px; background: #fff; border: 1px solid #d9d9d9; border-radius: 4px; padding: 3px 12px; font-size: 12px; color: #8c8c8c; flex: 1; }
+  .proto-title { font-size: 11px; color: #8c8c8c; font-weight: 600; text-align: center; }
+  .proto-body { background: #fff; }
+
+  /* ===== SYSTEM LAYOUT ===== */
+  .sys-layout { display: flex; height: 560px; }
+  .sys-sidebar { width: 200px; background: #001529; flex-shrink: 0; overflow-y: auto; }
+  .sys-sidebar .s-logo { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 13px; font-weight: 600; }
+  .sys-sidebar ul { list-style: none; padding: 8px 0; }
+  .sys-sidebar ul li { padding: 8px 16px; color: rgba(255,255,255,0.65); font-size: 12px; cursor: pointer; transition: all 0.2s; }
+  .sys-sidebar ul li:hover, .sys-sidebar ul li.active { color: #fff; background: #1890ff; }
+  .sys-sidebar ul li.group-title { color: rgba(255,255,255,0.35); font-size: 10px; font-weight: 600; padding: 12px 16px 4px; pointer-events: none; }
+  .sys-sidebar ul li.sub-item { padding-left: 28px; font-size: 11px; }
+  .sys-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .sys-topbar { background: #fff; border-bottom: 1px solid #f0f0f0; padding: 0 20px; height: 48px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .sys-topbar .breadcrumb { font-size: 12px; color: #8c8c8c; }
+  .sys-topbar .breadcrumb span { color: #1890ff; }
+  .sys-main { flex: 1; overflow-y: auto; padding: 16px 20px; background: #f5f5f5; }
+
+  /* ===== CARDS ===== */
+  .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat-card { background: #fff; border-radius: 6px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .stat-card .label { font-size: 12px; color: #8c8c8c; margin-bottom: 6px; }
+  .stat-card .value { font-size: 22px; font-weight: 700; color: #1890ff; }
+  .stat-card .sub { font-size: 11px; color: #8c8c8c; margin-top: 4px; }
+
+  /* ===== DATA TABLES IN PROTO ===== */
+  .proto-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .proto-table th { background: #fafafa; color: #595959; font-weight: 600; padding: 8px 12px; text-align: left; border-bottom: 2px solid #f0f0f0; border-top: 1px solid #f0f0f0; }
+  .proto-table td { padding: 8px 12px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+  .proto-table tr:hover td { background: #e6f7ff; }
+  .proto-table .ops a { color: #1890ff; cursor: pointer; margin-right: 8px; font-size: 11px; text-decoration: none; }
+  .proto-table .ops a:hover { text-decoration: underline; }
+  .proto-table .ops .danger { color: #ff4d4f; }
+
+  /* ===== BUTTONS ===== */
+  .btn { display: inline-flex; align-items: center; gap: 4px; padding: 5px 14px; border-radius: 4px; font-size: 12px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+  .btn-primary { background: #1890ff; color: #fff; border-color: #1890ff; }
+  .btn-primary:hover { background: #40a9ff; }
+  .btn-default { background: #fff; color: #595959; border-color: #d9d9d9; }
+  .btn-default:hover { color: #1890ff; border-color: #1890ff; }
+  .btn-danger { background: #fff; color: #ff4d4f; border-color: #ff4d4f; }
+  .btn-sm { padding: 3px 10px; font-size: 11px; }
+
+  /* ===== STATUS BADGES ===== */
+  .status { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+  .status-active { background: #f6ffed; color: #389e0d; }
+  .status-inactive { background: #f5f5f5; color: #8c8c8c; }
+  .status-pending { background: #fff7e6; color: #d46b08; }
+  .status-frozen { background: #fff1f0; color: #cf1322; }
+  .status-settled { background: #e6f7ff; color: #0050b3; }
+
+  /* ===== MODAL ===== */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: flex; align-items: center; justify-content: center; }
+  .modal { background: #fff; border-radius: 8px; width: 600px; max-width: 90%; box-shadow: 0 12px 40px rgba(0,0,0,0.15); overflow: hidden; }
+  .modal-header { padding: 16px 24px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+  .modal-header h3 { font-size: 16px; font-weight: 600; }
+  .modal-close { font-size: 18px; color: #8c8c8c; cursor: pointer; }
+  .modal-body { padding: 24px; max-height: 60vh; overflow-y: auto; }
+  .modal-footer { padding: 12px 24px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* ===== FORM ===== */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-label { display: block; font-size: 12px; color: #595959; margin-bottom: 6px; font-weight: 500; }
+  .form-label.required::before { content: '*'; color: #ff4d4f; margin-right: 3px; }
+  .form-input { width: 100%; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 12px; color: #262626; outline: none; transition: border 0.2s; }
+  .form-input:focus { border-color: #1890ff; box-shadow: 0 0 0 2px rgba(24,144,255,0.2); }
+  .form-input[disabled] { background: #f5f5f5; color: #8c8c8c; cursor: not-allowed; }
+  .form-select { width: 100%; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 12px; color: #262626; outline: none; background: #fff; }
+  .form-textarea { width: 100%; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 12px; color: #262626; outline: none; resize: vertical; min-height: 60px; }
+  .toggle-switch { position: relative; width: 36px; height: 20px; display: inline-block; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: #d9d9d9; border-radius: 10px; cursor: pointer; transition: 0.3s; }
+  .toggle-slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
+  .toggle-switch input:checked + .toggle-slider { background: #1890ff; }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+  /* ===== ACCORDION ===== */
+  .accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fafafa; border: 1px solid #f0f0f0; border-radius: 4px; cursor: pointer; margin-bottom: 4px; font-size: 13px; font-weight: 500; }
+  .accordion-header:hover { background: #e6f7ff; }
+  .accordion-body { padding: 16px; border: 1px solid #f0f0f0; border-top: none; border-radius: 0 0 4px 4px; margin-bottom: 8px; }
+
+  /* ===== FLOW DIAGRAM ===== */
+  .flow-diagram { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .flow-step { background: #e6f7ff; border: 1px solid #91d5ff; border-radius: 6px; padding: 10px 16px; font-size: 12px; font-weight: 500; color: #0050b3; text-align: center; min-width: 100px; }
+  .flow-arrow { color: #1890ff; font-size: 18px; padding: 0 4px; }
+  .flow-step.active { background: #1890ff; color: #fff; border-color: #1890ff; }
+
+  /* ===== ACCOUNT STRUCTURE DIAGRAM ===== */
+  .account-tree { font-size: 12px; }
+  .account-tree .level { margin-left: 24px; padding-left: 16px; border-left: 2px solid #e8e8e8; margin-top: 4px; }
+  .account-tree .node { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #fafafa; border: 1px solid #f0f0f0; border-radius: 4px; margin-bottom: 4px; cursor: pointer; }
+  .account-tree .node:hover { background: #e6f7ff; border-color: #91d5ff; }
+  .account-tree .node .icon { font-size: 14px; }
+  .account-tree .node .name { font-weight: 500; color: #262626; }
+  .account-tree .node .code { color: #8c8c8c; font-size: 11px; }
+  .account-tree .node .balance { margin-left: auto; color: #1890ff; font-weight: 600; }
+
+  /* ===== LEDGER TABLE ===== */
+  .ledger-entry { display: grid; grid-template-columns: 60px 1fr 1fr 80px 80px 80px; gap: 1px; font-size: 11px; }
+  .ledger-entry div { padding: 6px 10px; background: #fff; }
+  .ledger-entry.header div { background: #e6f7ff; font-weight: 600; color: #0050b3; }
+  .ledger-entry.debit .amount { color: #cf1322; }
+  .ledger-entry.credit .amount { color: #389e0d; }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-divider { display: flex; align-items: center; gap: 16px; margin: 32px 0; }
+  .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: #f0f0f0; }
+  .section-divider span { color: #bfbfbf; font-size: 12px; white-space: nowrap; }
+
+  /* ===== INFO BOX ===== */
+  .info-box { padding: 12px 16px; border-radius: 4px; margin: 16px 0; font-size: 12px; line-height: 1.8; }
+  .info-box.blue { background: #e6f7ff; border-left: 3px solid #1890ff; color: #0050b3; }
+  .info-box.green { background: #f6ffed; border-left: 3px solid #52c41a; color: #237804; }
+  .info-box.orange { background: #fff7e6; border-left: 3px solid #fa8c16; color: #ad4e00; }
+  .info-box.red { background: #fff1f0; border-left: 3px solid #ff4d4f; color: #820014; }
+
+  /* ===== CODE BLOCK ===== */
+  .code-block { background: #282c34; color: #abb2bf; border-radius: 6px; padding: 16px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.7; overflow-x: auto; margin: 12px 0; }
+  .code-block .kw { color: #c678dd; }
+  .code-block .str { color: #98c379; }
+  .code-block .num { color: #d19a66; }
+  .code-block .cm { color: #5c6370; }
+  .code-block .key { color: #e06c75; }
+
+  /* ===== TIMELINE ===== */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: #f0f0f0; }
+  .timeline-item { position: relative; margin-bottom: 20px; }
+  .timeline-item::before { content: ''; position: absolute; left: -20px; top: 6px; width: 10px; height: 10px; background: #1890ff; border-radius: 50%; }
+  .timeline-item .time { font-size: 11px; color: #8c8c8c; margin-bottom: 4px; }
+  .timeline-item .content { font-size: 12px; color: #595959; }
+  .timeline-item .title { font-weight: 600; color: #262626; font-size: 13px; }
+
+  /* ===== STEP BUILDER ===== */
+  .step-row { display: grid; font-size: 11px; gap: 1px; margin-bottom: 1px; }
+  .step-row.header { font-weight: 600; color: #0050b3; }
+  .step-row div { padding: 6px 8px; background: #fff; border: 1px solid #f0f0f0; }
+  .step-row.header div { background: #e6f7ff; border-color: #bae0ff; }
+  .step-row .dir-pos { color: #389e0d; font-weight: 600; }
+  .step-row .dir-neg { color: #cf1322; font-weight: 600; }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #f5f5f5; }
+  ::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #bfbfbf; }
+
+  /* page header */
+  .page-header { background: linear-gradient(135deg, #001529 0%, #003a70 100%); color: #fff; padding: 40px 32px; border-radius: 8px; margin-bottom: 24px; }
+  .page-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .page-header .subtitle { color: rgba(255,255,255,0.7); font-size: 14px; }
+  .page-header .tags { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .page-header .tags span { background: rgba(255,255,255,0.15); color: #fff; padding: 3px 12px; border-radius: 12px; font-size: 12px; }
+
+  /* sub-account grid */
+  .sub-account-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+  .sub-account-card { background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px; padding: 14px; }
+  .sub-account-card h4 { font-size: 13px; color: #262626; margin-bottom: 8px; }
+  .sub-account-card .balance-row { display: flex; justify-content: space-between; font-size: 11px; color: #595959; padding: 3px 0; border-bottom: 1px solid #f5f5f5; }
+  .sub-account-card .balance-row.total { font-weight: 600; color: #1890ff; border-bottom: none; padding-top: 6px; }
+
+  @media print {
+    .doc-nav { display: none; }
+    .doc-main { margin-left: 0; padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LEFT NAVIGATION -->
+<nav class="doc-nav">
+  <div class="nav-logo">
+    <h2>外卡收单账户系统</h2>
+    <span>详细需求文档 v1.0</span>
+  </div>
+  <ul>
+    <li class="nav-group"><a href="#">一、文档概述</a></li>
+    <li class="nav-sub"><a href="#overview">1.1 背景与目标</a></li>
+    <li class="nav-sub"><a href="#scope">1.2 系统范围</a></li>
+    <li class="nav-sub"><a href="#glossary">1.3 术语定义</a></li>
+
+    <li class="nav-group"><a href="#">二、账户模型设计</a></li>
+    <li class="nav-sub"><a href="#entity-model">2.1 实体层次模型</a></li>
+    <li class="nav-sub"><a href="#sub-account">2.2 功能账户类型</a></li>
+    <li class="nav-sub"><a href="#balance-model">2.3 多维余额索引</a></li>
+    <li class="nav-sub"><a href="#account-lifecycle">2.4 账户生命周期</a></li>
+
+    <li class="nav-group"><a href="#">三、资金状态机</a></li>
+    <li class="nav-sub"><a href="#fund-states">3.1 资金状态定义</a></li>
+    <li class="nav-sub"><a href="#state-transition">3.2 状态转换规则</a></li>
+    <li class="nav-sub"><a href="#freeze-thaw">3.3 冻结与解冻</a></li>
+
+    <li class="nav-group"><a href="#">四、账务前置引擎</a></li>
+    <li class="nav-sub"><a href="#rule-engine">4.1 规则引擎设计</a></li>
+    <li class="nav-sub"><a href="#booking-steps">4.2 入账步骤配置</a></li>
+    <li class="nav-sub"><a href="#transaction-samples">4.3 交易入账样例</a></li>
+    <li class="nav-sub"><a href="#group-fee">4.4 集团分润配置</a></li>
+
+    <li class="nav-group"><a href="#">五、会计核心</a></li>
+    <li class="nav-sub"><a href="#chart-of-accounts">5.1 科目体系</a></li>
+    <li class="nav-sub"><a href="#accounting-entries">5.2 会计分录设计</a></li>
+    <li class="nav-sub"><a href="#aux-accounting">5.3 辅助核算</a></li>
+
+    <li class="nav-group"><a href="#">六、对账与差错</a></li>
+    <li class="nav-sub"><a href="#reconciliation">6.1 对账流程</a></li>
+    <li class="nav-sub"><a href="#error-handling">6.2 差错处理</a></li>
+    <li class="nav-sub"><a href="#suspense-account">6.3 暂记账户</a></li>
+
+    <li class="nav-group"><a href="#">七、清结算设计</a></li>
+    <li class="nav-sub"><a href="#settlement-cycle">7.1 结算周期</a></li>
+    <li class="nav-sub"><a href="#payout">7.2 出款流程</a></li>
+    <li class="nav-sub"><a href="#clearing-service">7.3 清分服务</a></li>
+
+    <li class="nav-group"><a href="#">八、配置中心</a></li>
+    <li class="nav-sub"><a href="#config-center">8.1 配置中心架构</a></li>
+    <li class="nav-sub"><a href="#config-prototypes">8.2 配置界面原型</a></li>
+
+    <li class="nav-group"><a href="#">九、并发与幂等</a></li>
+    <li class="nav-sub"><a href="#idempotency">9.1 幂等性控制</a></li>
+    <li class="nav-sub"><a href="#concurrency">9.2 并发处理</a></li>
+
+    <li class="nav-group"><a href="#">十、原型汇总</a></li>
+    <li class="nav-sub"><a href="#proto-account-mgmt">10.1 账户管理</a></li>
+    <li class="nav-sub"><a href="#proto-balance-query">10.2 余额查询</a></li>
+    <li class="nav-sub"><a href="#proto-ledger">10.3 账簿流水</a></li>
+    <li class="nav-sub"><a href="#proto-recon">10.4 对账界面</a></li>
+    <li class="nav-sub"><a href="#proto-settlement">10.5 结算管理</a></li>
+    <li class="nav-sub"><a href="#proto-config">10.6 规则配置</a></li>
+  </ul>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="doc-main">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1>外卡收单账户系统 · 详细需求文档</h1>
+    <div class="subtitle">Account System Detailed Requirements · Version 1.0</div>
+    <div class="tags">
+      <span>账户模型</span>
+      <span>资金状态机</span>
+      <span>账务前置引擎</span>
+      <span>会计核心</span>
+      <span>对账清结算</span>
+      <span>配置中心</span>
+      <span>2026-04</span>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 1: 文档概述 ===== -->
+  <div class="doc-section" id="overview">
+    <h1>一、文档概述</h1>
+    <div class="doc-meta">
+      <div class="meta-item">📋 <strong>文档版本：</strong> v1.0</div>
+      <div class="meta-item">📅 <strong>编制日期：</strong> 2026-04</div>
+      <div class="meta-item">👤 <strong>文档状态：</strong> 初稿</div>
+      <div class="meta-item">🏷️ <strong>适用范围：</strong> 外卡收单账户系统</div>
+    </div>
+
+    <h2 id="scope">1.1 背景与目标</h2>
+    <p>本系统为外卡收单业务的核心账务基础设施，负责管理从收单通道入账到商户结算的完整资金流转。系统参考 Stripe、Adyen、Revolut、Fiserv、Worldpay 等国际主流支付机构的账户设计范式，结合公司业务实际（日本市场 KPay 外卡收单），设计一套高可用、可扩展、可审计的账户体系。</p>
+
+    <h3>核心设计目标</h3>
+    <table class="req-table">
+      <thead><tr><th>目标</th><th>具体要求</th><th>优先级</th></tr></thead>
+      <tbody>
+        <tr><td>资金安全</td><td>复式记账，借贷永远平衡；不允许非受控负余额；所有变动可追溯</td><td><span class="tag tag-p0">P0</span></td></tr>
+        <tr><td>高性能</td><td>余额查询 O(1) 毫秒级；支持 1000 TPS 并发入账</td><td><span class="tag tag-p0">P0</span></td></tr>
+        <tr><td>可配置</td><td>入账规则、分账比例、结算周期均可由运营人员通过界面配置，无需开发介入</td><td><span class="tag tag-p0">P0</span></td></tr>
+        <tr><td>可对账</td><td>支持按日、按月生成对账报告；与通道、银行三方核对</td><td><span class="tag tag-p1">P1</span></td></tr>
+        <tr><td>可扩展</td><td>支持多币种、多通道、多层级分润扩展</td><td><span class="tag tag-p1">P1</span></td></tr>
+        <tr><td>AI就绪</td><td>账户流水支持代理发起交易的标记与追溯</td><td><span class="tag tag-p2">P2</span></td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="glossary">1.2 核心术语定义</h2>
+    <table class="req-table">
+      <thead><tr><th>术语</th><th>英文</th><th>定义</th></tr></thead>
+      <tbody>
+        <tr><td>实体账户</td><td>Entity Account</td><td>对应真实业务主体（公司、机构、商户、门店）的账户</td></tr>
+        <tr><td>功能账户 / 子账户</td><td>Sub-Account</td><td>归属于实体账户下的资金用途分类，如交易户、手续费户、待结算户</td></tr>
+        <tr><td>多维余额索引</td><td>Balance Index</td><td>按（账户ID + 币种 + 资金状态）三维建立的余额快速查询索引</td></tr>
+        <tr><td>账务前置引擎</td><td>Pre-Booking Engine</td><td>接收业务事件，按配置规则自动执行入账步骤的规则引擎</td></tr>
+        <tr><td>会计核心</td><td>Accounting Core</td><td>执行复式记账，维护科目余额，确保借贷平衡的系统</td></tr>
+        <tr><td>清分服务</td><td>Clearing Service</td><td>按结算周期计算各方分润，生成结算单的批量服务</td></tr>
+        <tr><td>暂记账户</td><td>Suspense Account</td><td>用于临时存放差错资金或待查明资金的过渡账户</td></tr>
+        <tr><td>辅助核算</td><td>Auxiliary Accounting</td><td>在科目基础上增加核算维度（商户、通道、地区等）</td></tr>
+        <tr><td>伞形下沉</td><td>Umbrella Cascade</td><td>资金从上层账户（通道）逐步下沉到下层账户（门店）的多步骤入账模式</td></tr>
+        <tr><td>价值日期</td><td>Value Date</td><td>资金从"在途"状态变为"可用"状态的日期标记</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== SECTION 2: 账户模型设计 ===== -->
+  <div class="doc-section" id="entity-model">
+    <h1>二、账户模型设计</h1>
+
+    <h2>2.1 实体层次模型</h2>
+    <p>系统采用<strong>五层实体架构</strong>，每个实体对应一个主账户，主账户下设多个功能子账户。</p>
+
+    <table class="req-table">
+      <thead><tr><th>层级</th><th>实体类型</th><th>实体代码</th><th>说明</th><th>子账户数量（典型）</th></tr></thead>
+      <tbody>
+        <tr><td>L1</td><td>自有公司</td><td><code>SELF</code></td><td>KPay 日本法人，持有牌照</td><td>手续费收入户、差错户、储备金户</td></tr>
+        <tr><td>L2</td><td>机构</td><td><code>INSTITUTION</code></td><td>合作收单机构（如 Adyen JP）</td><td>通道应收款户、结算户</td></tr>
+        <tr><td>L3</td><td>代理</td><td><code>AGENT</code></td><td>上游代理商、渠道商</td><td>交易户、分润户</td></tr>
+        <tr><td>L4</td><td>商户</td><td><code>MERCHANT</code></td><td>实际收单商户（星巴克、麦当劳等）</td><td>交易汇集户、待结算户、可提现户、手续费户、保证金户</td></tr>
+        <tr><td>L5</td><td>门店</td><td><code>STORE</code></td><td>商户旗下门店</td><td>交易户</td></tr>
+      </tbody>
+    </table>
+
+    <!-- PROTOTYPE: 实体账户管理 -->
+    <h3>原型：实体账户管理界面</h3>
+    <div class="proto-container">
+      <div class="proto-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="url">账户管理系统 / 实体账户</div>
+        <div class="proto-title">原型 P2.1 — 实体账户管理</div>
+      </div>
+      <div class="proto-body">
+        <div class="sys-layout">
+          <div class="sys-sidebar">
+            <div class="s-logo">🏦 KPay 账户系统</div>
+            <ul>
+              <li class="group-title">账户管理</li>
+              <li class="active sub-item">实体账户</li>
+              <li class="sub-item">功能子账户</li>
+              <li class="sub-item">余额查询</li>
+              <li class="group-title">资金流水</li>
+              <li class="sub-item">账簿流水</li>
+              <li class="sub-item">会计分录</li>
+              <li class="group-title">对账清结算</li>
+              <li class="sub-item">对账管理</li>
+              <li class="sub-item">结算管理</li>
+              <li class="sub-item">出款管理</li>
+              <li class="group-title">配置中心</li>
+              <li class="sub-item">入账规则</li>
+              <li class="sub-item">分润配置</li>
+            </ul>
+          </div>
+          <div class="sys-content">
+            <div class="sys-topbar">
+              <div class="breadcrumb">账户管理 &gt; <span>实体账户</span></div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span style="font-size:11px;color:#8c8c8c;">当前：JP_ACQ_KPAY &nbsp;</span>
+                <button class="btn btn-primary btn-sm">+ 新增实体</button>
+              </div>
+            </div>
+            <div class="sys-main">
+              <div class="stat-cards">
+                <div class="stat-card"><div class="label">实体总数</div><div class="value">142</div><div class="sub">5 种类型</div></div>
+                <div class="stat-card"><div class="label">活跃商户</div><div class="value" style="color:#52c41a">128</div><div class="sub">本月新增 12</div></div>
+                <div class="stat-card"><div class="label">冻结账户</div><div class="value" style="color:#ff4d4f">3</div><div class="sub">待处理</div></div>
+                <div class="stat-card"><div class="label">子账户总数</div><div class="value">714</div><div class="sub">多功能类型</div></div>
+              </div>
+              <div style="background:#fff;border-radius:6px;padding:12px;border:1px solid #f0f0f0;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                  <div style="display:flex;gap:8px;">
+                    <input class="form-input" style="width:200px;" placeholder="搜索实体名称或ID..." />
+                    <select class="form-select" style="width:120px;"><option>全部类型</option><option>商户</option><option>门店</option><option>机构</option></select>
+                    <select class="form-select" style="width:100px;"><option>全部状态</option><option>活跃</option><option>冻结</option></select>
+                  </div>
+                  <div style="display:flex;gap:6px;">
+                    <button class="btn btn-default btn-sm">导出</button>
+                    <button class="btn btn-primary btn-sm">+ 新增</button>
+                  </div>
+                </div>
+                <table class="proto-table">
+                  <thead><tr><th>实体ID</th><th>实体名称</th><th>类型</th><th>层级</th><th>币种</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>JP_ACQ_KPAY</code></td><td>KPay Japan 收单</td><td><span class="tag tag-blue">机构</span></td><td>L2</td><td>JPY</td><td><span class="status status-active">活跃</span></td><td>2025-01-15</td><td class="ops"><a>查看</a><a>子账户</a><a>流水</a></td></tr>
+                    <tr><td><code>MCH_SBX_001</code></td><td>星巴克日本 KK</td><td><span class="tag tag-purple">商户</span></td><td>L4</td><td>JPY</td><td><span class="status status-active">活跃</span></td><td>2025-03-20</td><td class="ops"><a>查看</a><a>子账户</a><a>流水</a></td></tr>
+                    <tr><td><code>MCH_MCD_001</code></td><td>麦当劳日本</td><td><span class="tag tag-purple">商户</span></td><td>L4</td><td>JPY</td><td><span class="status status-active">活跃</span></td><td>2025-04-01</td><td class="ops"><a>查看</a><a>子账户</a><a>流水</a></td></tr>
+                    <tr><td><code>STORE_SBX_NJ01</code></td><td>星巴克南京西路店</td><td><span class="tag tag-blue">门店</span></td><td>L5</td><td>JPY</td><td><span class="status status-active">活跃</span></td><td>2025-03-20</td><td class="ops"><a>查看</a><a>子账户</a><a>流水</a></td></tr>
+                    <tr><td><code>AGENT_GRP_A</code></td><td>集团 A</td><td><span class="tag tag-p1">代理</span></td><td>L3</td><td>JPY</td><td><span class="status status-frozen">冻结</span></td><td>2025-02-10</td><td class="ops"><a>查看</a><a>子账户</a><a class="danger">解冻</a></td></tr>
+                  </tbody>
+                </table>
+                <div style="margin-top:10px;font-size:11px;color:#8c8c8c;display:flex;justify-content:space-between;">
+                  <span>共 142 条记录</span>
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-sm">上一页</button>
+                    <button class="btn btn-primary btn-sm">1</button>
+                    <button class="btn btn-default btn-sm">2</button>
+                    <button class="btn btn-default btn-sm">下一页</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 id="sub-account">2.2 功能账户（子账户）类型</h2>
+    <p>实体账户与功能类型<strong>正交组合</strong>，每个实体可开通不同的功能子账户，互相独立管理余额。</p>
+
+    <table class="req-table">
+      <thead><tr><th>子账户类型代码</th><th>名称</th><th>适用实体</th><th>资金性质</th><th>允许负余额</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>CHANNEL_REC</code></td><td>通道应收款户</td><td>机构</td><td>资产</td><td>否</td><td>记录从收单通道应收的资金</td></tr>
+        <tr><td><code>TRADE</code></td><td>交易汇集户</td><td>机构/商户</td><td>过渡负债</td><td>否</td><td>交易资金的汇集过渡账户</td></tr>
+        <tr><td><code>PLATFORM_FEE</code></td><td>平台手续费户</td><td>自有公司</td><td>收入</td><td>否</td><td>平台收取的手续费收入</td></tr>
+        <tr><td><code>PENDING</code></td><td>待结算户</td><td>商户</td><td>待支付负债</td><td>否</td><td>已确认但尚未结算到商户的资金</td></tr>
+        <tr><td><code>WITHDRAWABLE</code></td><td>可提现户</td><td>商户</td><td>可支付负债</td><td>否</td><td>结算完成可立即提现的资金</td></tr>
+        <tr><td><code>MERCHANT_FEE</code></td><td>手续费户</td><td>商户</td><td>费用</td><td>否</td><td>商户承担的手续费记录</td></tr>
+        <tr><td><code>DEPOSIT</code></td><td>保证金户</td><td>商户</td><td>受限资产</td><td>否</td><td>风控要求的保证金</td></tr>
+        <tr><td><code>DISPUTE</code></td><td>争议冻结户</td><td>商户</td><td>受限资产</td><td>否</td><td>拒付争议期间冻结的资金</td></tr>
+        <tr><td><code>SUSPENSE</code></td><td>暂记差错户</td><td>自有公司</td><td>暂记</td><td>是（技术性）</td><td>对账差错待查明资金的暂存账户</td></tr>
+        <tr><td><code>GROUP_FEE</code></td><td>集团分润户</td><td>自有公司/代理</td><td>收入</td><td>否</td><td>集团/代理从商户交易中收取的管理费</td></tr>
+        <tr><td><code>RESERVE</code></td><td>储备金户</td><td>自有公司</td><td>风险准备</td><td>否</td><td>平台级风险兜底储备金</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="balance-model">2.3 多维余额索引模型</h2>
+    <div class="info-box blue">
+      <strong>核心设计理念：</strong>不采用多个物理子账户表，而使用"主账簿流水 + 多维余额索引"的方式。流水不可变，状态变更也作为新流水记录。余额索引按（账户ID + 币种 + 资金状态维度）实时更新，支持 O(1) 毫秒级余额查询。
+    </div>
+
+    <h3>余额索引表结构</h3>
+    <div class="code-block">
+<span class="cm">-- 多维余额索引表</span>
+CREATE TABLE balance_index (
+    account_id    <span class="kw">VARCHAR</span>(64)   <span class="kw">NOT NULL</span>,    <span class="cm">-- 子账户ID</span>
+    currency      <span class="kw">VARCHAR</span>(3)    <span class="kw">NOT NULL</span>,    <span class="cm">-- 币种: JPY, USD, HKD...</span>
+    dimension     <span class="kw">VARCHAR</span>(20)   <span class="kw">NOT NULL</span>,    <span class="cm">-- AVAILABLE|PENDING|FROZEN|SUSPENSE|AUTH</span>
+    balance       <span class="kw">BIGINT</span>        <span class="kw">NOT NULL</span>  DEFAULT 0, <span class="cm">-- 金额（最小货币单位）</span>
+    version       <span class="kw">BIGINT</span>        <span class="kw">NOT NULL</span>  DEFAULT 0, <span class="cm">-- 乐观锁版本号</span>
+    last_updated  <span class="kw">TIMESTAMP</span>     <span class="kw">NOT NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (account_id, currency, dimension),
+    <span class="kw">INDEX</span> idx_account_currency (account_id, currency)
+);
+    </div>
+
+    <h3>余额维度说明</h3>
+    <table class="req-table">
+      <thead><tr><th>维度（dimension）</th><th>含义</th><th>计入可用余额</th><th>触发事件</th></tr></thead>
+      <tbody>
+        <tr><td><code>AVAILABLE</code></td><td>可用余额（可提现）</td><td>是</td><td>结算完成事件</td></tr>
+        <tr><td><code>PENDING</code></td><td>待结算（在途）</td><td>否</td><td>交易授权/捕获事件</td></tr>
+        <tr><td><code>FROZEN_RISK</code></td><td>风控冻结</td><td>否</td><td>风控规则触发</td></tr>
+        <tr><td><code>FROZEN_LEGAL</code></td><td>法律冻结</td><td>否</td><td>法院命令</td></tr>
+        <tr><td><code>FROZEN_DISPUTE</code></td><td>争议冻结</td><td>否</td><td>拒付/争议发起</td></tr>
+        <tr><td><code>SUSPENSE</code></td><td>暂记（差错待查）</td><td>否</td><td>对账差异发现</td></tr>
+        <tr><td><code>AUTH_HOLD</code></td><td>预授权占用</td><td>否</td><td>预授权请求</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box orange">
+      <strong>关键设计决策：</strong>风控冻结、法律冻结、争议冻结使用<strong>独立的维度标记</strong>，不混用同一个 FROZEN 维度。原因：(1) 解冻条件不同（风控需要人工审核，法律冻结需法院撤销）；(2) 审计追溯需要区分冻结原因；(3) 统计报表需要分类汇总。每次冻结/解冻操作同时生成一条状态变更流水，保证全生命周期可追溯。
+    </div>
+
+    <h2 id="account-lifecycle">2.4 账户生命周期</h2>
+    <div class="flow-diagram">
+      <div class="flow-step">申请开户</div><div class="flow-arrow">→</div>
+      <div class="flow-step">KYB审核</div><div class="flow-arrow">→</div>
+      <div class="flow-step active">待激活</div><div class="flow-arrow">→</div>
+      <div class="flow-step">正常</div><div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#fff7e6;border-color:#ffd591;color:#ad4e00;">冻结</div><div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#fff1f0;border-color:#ffa39e;color:#820014;">注销</div>
+    </div>
+    <table class="req-table">
+      <thead><tr><th>状态</th><th>允许操作</th><th>禁止操作</th><th>转换条件</th></tr></thead>
+      <tbody>
+        <tr><td>待激活</td><td>查看、修改资料</td><td>入账、出款、提现</td><td>KYB 审核通过 → 正常</td></tr>
+        <tr><td>正常</td><td>全部操作</td><td>-</td><td>风控/人工触发 → 冻结；申请注销 → 注销流程</td></tr>
+        <tr><td>冻结</td><td>查看余额、查看流水、入账（资金进）</td><td>出款、提现、转账</td><td>审核解冻 → 正常；满足注销条件 → 注销</td></tr>
+        <tr><td>注销</td><td>只读查看</td><td>所有写操作</td><td>终态（不可逆）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== SECTION 3: 资金状态机 ===== -->
+  <div class="doc-section" id="fund-states">
+    <h1>三、资金状态机</h1>
+
+    <h2>3.1 资金状态定义</h2>
+    <p>每笔资金从进入系统到最终出款，经历以下状态。状态变更均生成新的流水记录，确保全程可追溯。</p>
+
+    <table class="req-table">
+      <thead><tr><th>状态</th><th>代码</th><th>触发事件</th><th>余额索引变化</th><th>是否可提现</th></tr></thead>
+      <tbody>
+        <tr><td>预授权</td><td><code>AUTHORISED</code></td><td>收单通道授权成功</td><td><code>AUTH_HOLD +amount</code></td><td>否</td></tr>
+        <tr><td>预授权完成</td><td><code>AUTH_CAPTURED</code></td><td>收单通道捕获成功</td><td><code>AUTH_HOLD -amount; PENDING +amount</code></td><td>否</td></tr>
+        <tr><td>预授权撤销</td><td><code>AUTH_REVERSED</code></td><td>预授权撤销</td><td><code>AUTH_HOLD -amount</code></td><td>-</td></tr>
+        <tr><td>清算完成</td><td><code>CLEARED</code></td><td>资金到达系统银行账户</td><td>（仍在 PENDING）</td><td>否</td></tr>
+        <tr><td>结算完成</td><td><code>SETTLED</code></td><td>系统内部清算+价值日期到达</td><td><code>PENDING -amount; AVAILABLE +amount</code></td><td><strong>是</strong></td></tr>
+        <tr><td>已出款</td><td><code>PAID_OUT</code></td><td>资金划拨至商户银行</td><td><code>AVAILABLE -amount</code></td><td>-</td></tr>
+        <tr><td>风控冻结</td><td><code>FROZEN_RISK</code></td><td>风控规则触发</td><td><code>AVAILABLE -amount; FROZEN_RISK +amount</code></td><td>否</td></tr>
+        <tr><td>风控解冻</td><td><code>UNFROZEN_RISK</code></td><td>风控审核通过</td><td><code>FROZEN_RISK -amount; AVAILABLE +amount</code></td><td>是</td></tr>
+        <tr><td>争议冻结</td><td><code>FROZEN_DISPUTE</code></td><td>拒付/争议发起</td><td><code>AVAILABLE -amount; FROZEN_DISPUTE +amount</code></td><td>否</td></tr>
+        <tr><td>争议胜诉</td><td><code>DISPUTE_WON</code></td><td>争议处理完成-商户胜诉</td><td><code>FROZEN_DISPUTE -amount; AVAILABLE +amount</code></td><td>是</td></tr>
+        <tr><td>争议败诉</td><td><code>DISPUTE_LOST</code></td><td>争议处理完成-商户败诉</td><td><code>FROZEN_DISPUTE -amount</code>（资金退回持卡人）</td><td>-</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="state-transition">3.2 关键说明：预授权不单独入账</h2>
+    <div class="info-box blue">
+      <strong>设计决策：</strong>预授权（AUTHORISED）阶段<strong>不做账簿入账</strong>，仅在余额索引中标记 <code>AUTH_HOLD</code> 以防止超提。入账从"预授权完成（AUTH_CAPTURED）"事件开始。原因：预授权可能被撤销，撤销前入账会产生不必要的流水；收单通道对预授权不计费，无需生成会计分录。
+    </div>
+
+    <h2 id="freeze-thaw">3.3 冻结与解冻流程</h2>
+    <div class="info-box orange">
+      <strong>关键设计：</strong>冻结操作会从 <code>AVAILABLE</code> 维度扣减余额，加入对应的冻结维度（<code>FROZEN_RISK</code> / <code>FROZEN_DISPUTE</code> / <code>FROZEN_LEGAL</code>），同时生成一条状态变更流水（金额为0，类型为 FREEZE）。解冻时反向操作。这样确保：(1) 快速查询各维度余额；(2) 任意时刻的余额快照可重建；(3) 差错留观中的账户即使未解决，也能准确显示各维度余额。
+    </div>
+
+    <!-- PROTOTYPE: 账户冻结 -->
+    <h3>原型：账户冻结/解冻操作</h3>
+    <div class="proto-container">
+      <div class="proto-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="url">账户管理 / 冻结管理</div>
+        <div class="proto-title">原型 P3.1 — 冻结管理</div>
+      </div>
+      <div class="proto-body" style="padding:20px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <!-- 冻结表单 -->
+          <div style="background:#fff1f0;border:1px solid #ffa39e;border-radius:6px;padding:16px;">
+            <h4 style="color:#820014;margin-bottom:12px;">⚠️ 风控冻结申请</h4>
+            <div class="form-group">
+              <label class="form-label required">账户ID</label>
+              <input class="form-input" value="MCH_SBX_001 - 星巴克日本" disabled />
+            </div>
+            <div class="form-group">
+              <label class="form-label required">冻结类型</label>
+              <select class="form-select">
+                <option>风控冻结（FROZEN_RISK）</option>
+                <option>法律冻结（FROZEN_LEGAL）</option>
+                <option>争议冻结（FROZEN_DISPUTE）</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label required">冻结金额（JPY）</label>
+              <input class="form-input" placeholder="留空表示全额冻结" />
+            </div>
+            <div class="form-group">
+              <label class="form-label required">冻结原因</label>
+              <textarea class="form-textarea" placeholder="填写冻结原因，将记录在流水备注中..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">关联差错单号</label>
+              <input class="form-input" placeholder="ERR-2026-xxxx（可选）" />
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="btn btn-danger">确认冻结</button>
+              <button class="btn btn-default">取消</button>
+            </div>
+          </div>
+          <!-- 冻结记录 -->
+          <div>
+            <h4 style="margin-bottom:12px;">当前冻结记录</h4>
+            <table class="proto-table">
+              <thead><tr><th>冻结类型</th><th>金额（JPY）</th><th>状态</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr><td>风控冻结</td><td style="color:#cf1322;font-weight:600;">¥ 50,000</td><td><span class="status status-frozen">冻结中</span></td><td class="ops"><a>查看</a><a class="danger">解冻</a></td></tr>
+                <tr><td>争议冻结</td><td style="color:#cf1322;font-weight:600;">¥ 12,000</td><td><span class="status status-frozen">冻结中</span></td><td class="ops"><a>查看</a><a class="danger">解冻</a></td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top:12px;background:#f6ffed;border:1px solid #b7eb8f;border-radius:6px;padding:12px;font-size:12px;">
+              <div style="font-weight:600;color:#237804;margin-bottom:6px;">余额快照（实时）</div>
+              <div style="display:flex;justify-content:space-between;padding:3px 0;color:#595959;"><span>可用余额</span><span>¥ 138,000</span></div>
+              <div style="display:flex;justify-content:space-between;padding:3px 0;color:#595959;"><span>待结算</span><span>¥ 45,000</span></div>
+              <div style="display:flex;justify-content:space-between;padding:3px 0;color:#cf1322;"><span>风控冻结</span><span>¥ 50,000</span></div>
+              <div style="display:flex;justify-content:space-between;padding:3px 0;color:#cf1322;"><span>争议冻结</span><span>¥ 12,000</span></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid #b7eb8f;margin-top:4px;font-weight:600;color:#262626;"><span>账面总额</span><span>¥ 245,000</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 4: 账务前置引擎 ===== -->
+  <div class="doc-section" id="rule-engine">
+    <h1>四、账务前置引擎</h1>
+
+    <h2>4.1 规则引擎设计</h2>
+    <p>账务前置引擎接收业务系统发出的<strong>业务事件</strong>，根据<strong>配置的入账规则</strong>，自动执行多步骤入账操作。规则引擎与账户系统之间通过明确的职责边界解耦。</p>
+
+    <div class="info-box blue">
+      <strong>职责边界说明：</strong>账务前置引擎负责"<strong>付了怎么记</strong>"（入账、记账）；支付网关负责"<strong>能不能付</strong>"（验证、授权、路由）。委托令牌验证、智能路由等均由支付网关完成，账务系统仅接收已验证通过的入账指令，并在流水中记录代理ID等元数据。
+    </div>
+
+    <h3>规则配置要素</h3>
+    <table class="req-table">
+      <thead><tr><th>配置项</th><th>说明</th><th>示例</th></tr></thead>
+      <tbody>
+        <tr><td>触发条件</td><td>何种事件触发此规则</td><td>事件类型=TRANSACTION_SUCCESS AND 国家=JP</td></tr>
+        <tr><td>优先级</td><td>多规则匹配时的执行顺序</td><td>10（数值越小越优先）</td></tr>
+        <tr><td>入账步骤</td><td>按顺序执行的子账户变动列表</td><td>步骤1到步骤N</td></tr>
+        <tr><td>失败处理策略</td><td>步骤失败时的处理方式</td><td>ROLLBACK_ALL / SUSPEND / SKIP</td></tr>
+        <tr><td>幂等键模板</td><td>防止重复入账的唯一键</td><td><code>{transaction_id}:{rule_id}:{step_no}</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>步骤配置字段</h3>
+    <table class="req-table">
+      <thead><tr><th>字段</th><th>说明</th><th>取值方式</th></tr></thead>
+      <tbody>
+        <tr><td>子账户类型</td><td>入账目标子账户类型</td><td>下拉选择（配置中心枚举）</td></tr>
+        <tr><td>实体类型ID</td><td>子账户所属实体层级</td><td>下拉选择（L1~L5）</td></tr>
+        <tr><td>实体ID</td><td>具体实体</td><td>固定值 / 从事件字段取值</td></tr>
+        <tr><td>方向</td><td>正向（增加）/ 负向（减少）</td><td>下拉选择</td></tr>
+        <tr><td>变动金额</td><td>本步骤的金额</td><td>固定值 / 事件字段 / 表达式 / 剩余金额</td></tr>
+        <tr><td>币种</td><td>入账币种</td><td>从事件字段取值</td></tr>
+        <tr><td>业务场景ID</td><td>关联的业务场景</td><td>从事件字段取值</td></tr>
+        <tr><td>业务类型</td><td>交易类型标记</td><td>从事件字段取值</td></tr>
+        <tr><td>业务关联ID</td><td>关联的原始交易ID</td><td>从事件字段取值</td></tr>
+        <tr><td>操作类型</td><td>入账操作类型标记</td><td>从事件字段取值</td></tr>
+        <tr><td>国家码</td><td>业务发生国家</td><td>从事件字段取值</td></tr>
+      </tbody>
+    </table>
+
+    <h3>金额规则类型</h3>
+    <table class="req-table">
+      <thead><tr><th>类型</th><th>代码</th><th>表达式示例</th><th>适用场景</th></tr></thead>
+      <tbody>
+        <tr><td>事件字段取值</td><td><code>EVENT_FIELD</code></td><td><code>$.transaction_data.pay_amount</code></td><td>直接取事件中的金额字段</td></tr>
+        <tr><td>固定金额</td><td><code>FIXED</code></td><td><code>5.00</code></td><td>每笔固定收费</td></tr>
+        <tr><td>简单表达式</td><td><code>EXPRESSION</code></td><td><code>$.pay_amount * 0.02</code></td><td>简单数学运算</td></tr>
+        <tr><td>自定义函数</td><td><code>FUNCTION</code></td><td><code>getGroupFeeRate($.merchant_id) * $.pay_amount</code></td><td>需开发注册函数，从配置表动态取费率</td></tr>
+        <tr><td>剩余金额</td><td><code>REMAINDER</code></td><td>（自动计算）</td><td>最后一步分配剩余资金，用于伞形下沉的最后一个账户</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box green">
+      <strong>剩余金额说明：</strong>剩余金额 = 前序步骤中最近一次正向入账金额 - 本规则中已分配的所有金额。适用于"扣除固定部分后，剩下的全部给下一个账户"的场景，能自动适应中间规则的调整，无需手动维护公式。
+    </div>
+
+    <h2 id="booking-steps">4.2 入账步骤：伞形下沉模型</h2>
+    <p>伞形下沉是本系统核心入账模式：资金从通道应收款逐步流入各层级账户，保证资金流向清晰可控。</p>
+
+    <div class="info-box orange">
+      <strong>无负余额原则：</strong>所有子账户不允许负余额。因此入账步骤顺序至关重要：<strong>必须先增加后减少</strong>。对于退货等需要先从下层账户划出的场景，应先将资金归集至中间账户（增加），再分配到目标账户（减少），确保每一步操作后余额均为非负值。
+    </div>
+
+    <h2 id="transaction-samples">4.3 正向交易入账样例（SCE_PURCHASE）</h2>
+    <p>交易金额 ¥100，手续费 ¥3，商户净收 ¥97。</p>
+
+    <h3>业务账户入账步骤</h3>
+    <div style="overflow-x:auto;">
+      <table class="req-table" style="font-size:12px;min-width:900px;">
+        <thead>
+          <tr>
+            <th style="min-width:120px;">字段名</th>
+            <th>步骤一</th><th>步骤二</th><th>步骤三</th><th>步骤四</th><th>步骤五</th><th>步骤六</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>子账户类型</strong></td><td>Adyen通道应收款</td><td>KPay JP 交易户</td><td>KPay JP 交易户</td><td>KPay JP 手续费户</td><td>KPay JP 交易户</td><td>门店交易户</td></tr>
+          <tr><td><strong>方向</strong></td><td><span style="color:#389e0d;font-weight:700;">正向</span></td><td><span style="color:#389e0d;font-weight:700;">正向</span></td><td><span style="color:#cf1322;font-weight:700;">负向</span></td><td><span style="color:#389e0d;font-weight:700;">正向</span></td><td><span style="color:#cf1322;font-weight:700;">负向</span></td><td><span style="color:#389e0d;font-weight:700;">正向</span></td></tr>
+          <tr><td><strong>变动金额</strong></td><td><code>$.pay_amount</code></td><td><code>$.pay_amount</code></td><td><code>$.transaction_fee</code></td><td><code>$.transaction_fee</code></td><td><code>$.pay_amount - $.transaction_fee</code></td><td>剩余金额</td></tr>
+          <tr><td><strong>示例金额</strong></td><td style="color:#389e0d;font-weight:700;">+¥100</td><td style="color:#389e0d;font-weight:700;">+¥100</td><td style="color:#cf1322;font-weight:700;">-¥3</td><td style="color:#389e0d;font-weight:700;">+¥3</td><td style="color:#cf1322;font-weight:700;">-¥97</td><td style="color:#389e0d;font-weight:700;">+¥97</td></tr>
+          <tr><td><strong>实体类型ID</strong></td><td>通道</td><td>JP_ACQ_KPAY</td><td>JP_ACQ_KPAY</td><td>JP_ACQ_KPAY</td><td>JP_ACQ_KPAY</td><td>门店</td></tr>
+          <tr><td><strong>实体ID</strong></td><td><code>$.payment_channel</code></td><td>固定：JP_ACQ_KPAY</td><td>固定：JP_ACQ_KPAY</td><td>固定：JP_ACQ_KPAY</td><td>固定：JP_ACQ_KPAY</td><td><code>$.kpay_merchant_no</code></td></tr>
+          <tr><td><strong>业务场景ID</strong></td><td colspan="6" style="text-align:center;color:#8c8c8c;">从事件字段取值：<code>$.event_metadata.business_scenario_id</code></td></tr>
+          <tr><td><strong>业务关联ID</strong></td><td colspan="6" style="text-align:center;color:#8c8c8c;">从事件字段取值：<code>$.transaction_data.kpay_transaction_id</code></td></tr>
+          <tr><td><strong>国家码</strong></td><td colspan="6" style="text-align:center;color:#8c8c8c;">从事件字段取值：<code>$.accounting_data.country_code</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>退货交易入账样例（SCE_REFUND）</h3>
+    <p>退货金额 ¥100，退货手续费 ¥3（额外再收），商户实际退回 ¥103。<strong>注意步骤顺序：先增加KPay交易户，确保后续扣减不产生负余额。</strong></p>
+    <div style="overflow-x:auto;">
+      <table class="req-table" style="font-size:12px;min-width:900px;">
+        <thead>
+          <tr>
+            <th style="min-width:120px;">字段名</th>
+            <th>步骤一</th><th>步骤二</th><th>步骤三</th><th>步骤四</th><th>步骤五</th><th>步骤六</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>子账户类型</strong></td><td>Adyen通道应收款</td><td>KPay JP 交易户</td><td>KPay JP 交易户</td><td>KPay JP 手续费户</td><td>KPay JP 交易户</td><td>门店交易户</td></tr>
+          <tr><td><strong>方向</strong></td><td><span style="color:#cf1322;font-weight:700;">负向</span></td><td><span style="color:#389e0d;font-weight:700;">正向</span></td><td><span style="color:#cf1322;font-weight:700;">负向</span></td><td><span style="color:#389e0d;font-weight:700;">正向</span></td><td><span style="color:#cf1322;font-weight:700;">负向</span></td><td><span style="color:#cf1322;font-weight:700;">负向</span></td></tr>
+          <tr><td><strong>变动金额</strong></td><td><code>$.pay_amount</code></td><td><code>$.pay_amount + $.transaction_fee</code></td><td><code>$.transaction_fee</code></td><td><code>$.transaction_fee</code></td><td><code>$.pay_amount</code></td><td><code>$.pay_amount + $.transaction_fee</code></td></tr>
+          <tr><td><strong>示例金额</strong></td><td style="color:#cf1322;font-weight:700;">-¥100</td><td style="color:#389e0d;font-weight:700;">+¥103</td><td style="color:#cf1322;font-weight:700;">-¥3</td><td style="color:#389e0d;font-weight:700;">+¥3</td><td style="color:#cf1322;font-weight:700;">-¥100</td><td style="color:#cf1322;font-weight:700;">-¥103</td></tr>
+          <tr><td><strong>实体类型ID</strong></td><td>通道</td><td>JP_ACQ_KPAY</td><td>JP_ACQ_KPAY</td><td>JP_ACQ_KPAY</td><td>JP_ACQ_KPAY</td><td>门店</td></tr>
+          <tr><td><strong>实体ID</strong></td><td><code>$.payment_channel</code></td><td>固定：JP_ACQ_KPAY</td><td>固定：JP_ACQ_KPAY</td><td>固定：JP_ACQ_KPAY</td><td>固定：JP_ACQ_KPAY</td><td><code>$.kpay_merchant_no</code></td></tr>
+          <tr><td><strong>业务场景ID</strong></td><td colspan="6" style="text-align:center;color:#8c8c8c;">固定值：<code>SCE_REFUND</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info-box blue">
+      <strong>退货资金流逻辑说明：</strong><br>
+      步骤一：通道应收款减少100（退货本金）<br>
+      步骤二：KPay交易户先增加103（先补充资金，确保后续扣减不产生负余额）<br>
+      步骤三：KPay交易户减少3（扣除退货手续费）<br>
+      步骤四：KPay手续费户增加3（确认退货手续费收入）<br>
+      步骤五：KPay交易户减少100（退还本金部分）<br>
+      步骤六：门店交易户减少103（商户账户扣除应退总额）<br>
+      <strong>最终KPay交易户净变动：+103 -3 -100 = 0（过渡账户归零）</strong>
+    </div>
+
+    <h2 id="group-fee">4.4 集团分润配置</h2>
+    <p>当集团需要从商户交易中抽取管理费时，通过独立的分润配置表 + 自定义函数动态获取费率，无需为每个集团创建独立规则。</p>
+
+    <h3>集团费率配置表</h3>
+    <div class="code-block">
+CREATE TABLE group_fee_config (
+    <span class="key">id</span>              BIGINT       <span class="kw">PRIMARY KEY</span>,
+    <span class="key">group_id</span>        VARCHAR(64)  <span class="kw">NOT NULL</span>,       <span class="cm">-- 集团ID</span>
+    <span class="key">group_name</span>      VARCHAR(128),                   <span class="cm">-- 集团名称</span>
+    <span class="key">fee_type</span>        VARCHAR(20)  <span class="kw">NOT NULL</span>,       <span class="cm">-- RATIO | FIXED</span>
+    <span class="key">fee_value</span>       DECIMAL(10,6) <span class="kw">NOT NULL</span>,      <span class="cm">-- 费率(0.02) 或固定金额</span>
+    <span class="key">currency</span>        VARCHAR(3)   DEFAULT <span class="str">'JPY'</span>,   <span class="cm">-- 币种</span>
+    <span class="key">match_type</span>      VARCHAR(20),                    <span class="cm">-- MERCHANT_LIST | MERCHANT_LEVEL</span>
+    <span class="key">merchant_ids</span>    TEXT,                           <span class="cm">-- JSON数组 ["MCH_001","MCH_002"]</span>
+    <span class="key">merchant_level</span>  VARCHAR(32),                    <span class="cm">-- 商户等级匹配</span>
+    <span class="key">effective_date</span>  DATE,
+    <span class="key">expiry_date</span>     DATE,
+    <span class="key">priority</span>        INT          DEFAULT 0,
+    <span class="key">status</span>          VARCHAR(20)  DEFAULT <span class="str">'ACTIVE'</span>
+);
+    </div>
+
+    <div class="info-box orange">
+      <strong>开发实现要求（自定义函数）：</strong>在表达式引擎中注册 <code>getGroupFeeRate(merchantId)</code> 函数。函数逻辑：根据 merchant_id 查询 group_fee_config 表，返回匹配的 fee_value。需支持 Redis 缓存（TTL 300秒），配置变更时主动清除缓存。查询不到时返回默认值 0。
+    </div>
+
+    <!-- PROTOTYPE: 集团分润配置 -->
+    <h3>原型：集团分润配置界面</h3>
+    <div class="proto-container">
+      <div class="proto-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="url">配置中心 / 集团分润配置</div>
+        <div class="proto-title">原型 P4.1 — 集团分润配置</div>
+      </div>
+      <div class="proto-body" style="padding:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:600;">集团扣费配置</div>
+          <button class="btn btn-primary btn-sm">+ 新增配置</button>
+        </div>
+        <table class="proto-table">
+          <thead><tr><th>集团名称</th><th>扣费类型</th><th>费率/金额</th><th>关联方式</th><th>关联商户</th><th>生效期间</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>集团 A</td><td>比例</td><td style="color:#1890ff;font-weight:600;">2.00%</td><td>商户白名单</td><td>MCH_001, MCH_002</td><td>2026-01-01 ~ 2026-12-31</td><td><span class="status status-active">生效</span></td><td class="ops"><a>编辑</a><a>查看商户</a><a class="danger">停用</a></td></tr>
+            <tr><td>集团 B</td><td>比例</td><td style="color:#1890ff;font-weight:600;">1.50%</td><td>商户等级</td><td>VIP等级</td><td>2026-01-01 ~ 2026-12-31</td><td><span class="status status-active">生效</span></td><td class="ops"><a>编辑</a><a>查看商户</a><a class="danger">停用</a></td></tr>
+            <tr><td>集团 C</td><td>固定</td><td style="color:#1890ff;font-weight:600;">¥5.00/笔</td><td>商户白名单</td><td>MCH_006</td><td>2025-06-01 ~ 2025-12-31</td><td><span class="status status-inactive">已过期</span></td><td class="ops"><a>编辑</a><a>续期</a></td></tr>
+          </tbody>
+        </table>
+        <!-- 编辑弹窗 -->
+        <div style="margin-top:16px;border:1px solid #1890ff;border-radius:6px;padding:16px;background:#f0f8ff;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:#0050b3;">编辑配置 — 集团 A</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group"><label class="form-label required">集团名称</label><input class="form-input" value="集团 A" /></div>
+            <div class="form-group"><label class="form-label required">扣费类型</label><select class="form-select"><option selected>比例（RATIO）</option><option>固定金额（FIXED）</option></select></div>
+            <div class="form-group"><label class="form-label required">费率（%）</label><input class="form-input" value="2.00" /></div>
+            <div class="form-group"><label class="form-label required">关联方式</label><select class="form-select"><option selected>商户白名单</option><option>商户等级</option><option>商户标签</option></select></div>
+            <div class="form-group" style="grid-column:1/-1;"><label class="form-label required">关联商户</label><input class="form-input" value="MCH_001, MCH_002, MCH_003" placeholder="输入商户ID，逗号分隔" /></div>
+            <div class="form-group"><label class="form-label required">生效日期</label><input class="form-input" type="date" value="2026-01-01" /></div>
+            <div class="form-group"><label class="form-label required">失效日期</label><input class="form-input" type="date" value="2026-12-31" /></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="btn btn-primary btn-sm">保存</button>
+            <button class="btn btn-default btn-sm">取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 5: 会计核心 ===== -->
+  <div class="doc-section" id="chart-of-accounts">
+    <h1>五、会计核心</h1>
+
+    <h2>5.1 科目体系</h2>
+    <table class="req-table">
+      <thead><tr><th>科目代码</th><th>科目名称</th><th>类型</th><th>辅助核算</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>1121</code></td><td>通道应收款</td><td>资产</td><td>通道</td><td>从收单通道应收取的资金</td></tr>
+        <tr><td><code>1122</code></td><td>银行存款（聚合账户）</td><td>资产</td><td>-</td><td>实际资金所在银行账户</td></tr>
+        <tr><td><code>2201</code></td><td>应付商户款—待结算</td><td>负债</td><td>商户、通道、地区</td><td>已确认待结算给商户的资金</td></tr>
+        <tr><td><code>2202</code></td><td>应付商户款—可提现</td><td>负债</td><td>商户、地区</td><td>结算完成可出款的资金</td></tr>
+        <tr><td><code>2203</code></td><td>应付集团分润</td><td>负债</td><td>集团</td><td>清分后应支付给集团的管理费</td></tr>
+        <tr><td><code>2204</code></td><td>争议冻结暂记</td><td>负债</td><td>商户、争议单号</td><td>拒付/争议期间冻结的资金</td></tr>
+        <tr><td><code>2205</code></td><td>差错暂记账户</td><td>负债</td><td>差错单号</td><td>对账差错待查明资金</td></tr>
+        <tr><td><code>4601</code></td><td>平台手续费收入</td><td>收入</td><td>通道、商户、地区</td><td>平台收取的手续费</td></tr>
+        <tr><td><code>4602</code></td><td>退货手续费收入</td><td>收入</td><td>通道、商户</td><td>退货时额外收取的手续费</td></tr>
+        <tr><td><code>4603</code></td><td>集团管理费收入</td><td>收入</td><td>集团、商户</td><td>集团扣费收入</td></tr>
+        <tr><td><code>5401</code></td><td>通道手续费支出</td><td>费用</td><td>通道</td><td>支付给收单通道的费用</td></tr>
+        <tr><td><code>6101</code></td><td>争议损失准备</td><td>费用</td><td>商户</td><td>拒付损失的费用确认</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="accounting-entries">5.2 会计分录设计</h2>
+    <h3>正向交易分录（¥100，手续费¥3）</h3>
+    <table class="req-table">
+      <thead><tr><th>分录号</th><th>科目代码</th><th>科目名称</th><th>借方（Dr）</th><th>贷方（Cr）</th><th>辅助核算值</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><code>1121</code></td><td>通道应收款</td><td style="color:#cf1322;font-weight:600;">¥100</td><td>-</td><td>通道=Adyen</td></tr>
+        <tr><td>2</td><td><code>4601</code></td><td>平台手续费收入</td><td>-</td><td style="color:#389e0d;font-weight:600;">¥3</td><td>通道=Adyen, 商户=MCH_001</td></tr>
+        <tr><td>3</td><td><code>2201</code></td><td>应付商户款—待结算</td><td>-</td><td style="color:#389e0d;font-weight:600;">¥97</td><td>商户=MCH_001, 地区=JP</td></tr>
+        <tr style="background:#e6f7ff;"><td colspan="3" style="text-align:right;font-weight:600;">合计</td><td style="font-weight:700;color:#cf1322;">¥100</td><td style="font-weight:700;color:#389e0d;">¥100</td><td style="color:#389e0d;font-weight:600;">✓ 借贷平衡</td></tr>
+      </tbody>
+    </table>
+
+    <h3>结算完成（Settled）分录</h3>
+    <table class="req-table">
+      <thead><tr><th>分录号</th><th>科目代码</th><th>科目名称</th><th>借方（Dr）</th><th>贷方（Cr）</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><code>1122</code></td><td>银行存款（聚合账户）</td><td style="color:#cf1322;font-weight:600;">¥100</td><td>-</td></tr>
+        <tr><td>2</td><td><code>1121</code></td><td>通道应收款</td><td>-</td><td style="color:#389e0d;font-weight:600;">¥100</td></tr>
+        <tr><td>3</td><td><code>2201</code></td><td>应付商户款—待结算</td><td style="color:#cf1322;font-weight:600;">¥97</td><td>-</td></tr>
+        <tr><td>4</td><td><code>2202</code></td><td>应付商户款—可提现</td><td>-</td><td style="color:#389e0d;font-weight:600;">¥97</td></tr>
+        <tr style="background:#e6f7ff;"><td colspan="3" style="text-align:right;font-weight:600;">合计</td><td style="font-weight:700;">¥197</td><td style="font-weight:700;">¥197</td></tr>
+      </tbody>
+    </table>
+
+    <h3>退货交易分录（¥100退货，退货手续费¥3）</h3>
+    <table class="req-table">
+      <thead><tr><th>分录号</th><th>科目代码</th><th>科目名称</th><th>借方（Dr）</th><th>贷方（Cr）</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><code>2202</code></td><td>应付商户款—可提现</td><td style="color:#cf1322;font-weight:600;">¥103</td><td>-</td></tr>
+        <tr><td>2</td><td><code>1121</code></td><td>通道应收款（退款）</td><td>-</td><td style="color:#389e0d;font-weight:600;">¥100</td></tr>
+        <tr><td>3</td><td><code>4602</code></td><td>退货手续费收入</td><td>-</td><td style="color:#389e0d;font-weight:600;">¥3</td></tr>
+        <tr style="background:#e6f7ff;"><td colspan="3" style="text-align:right;font-weight:600;">合计</td><td style="font-weight:700;">¥103</td><td style="font-weight:700;">¥103</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="aux-accounting">5.3 辅助核算</h2>
+    <table class="req-table">
+      <thead><tr><th>核算类型代码</th><th>核算名称</th><th>值来源</th><th>适用科目（示例）</th></tr></thead>
+      <tbody>
+        <tr><td><code>MERCHANT</code></td><td>商户</td><td>外部表（merchant表）</td><td>2201、2202、4601</td></tr>
+        <tr><td><code>STORE</code></td><td>门店</td><td>外部表（store表）</td><td>2201（可选）</td></tr>
+        <tr><td><code>CHANNEL</code></td><td>通道</td><td>外部API / 静态枚举</td><td>1121、4601、5401</td></tr>
+        <tr><td><code>REGION</code></td><td>地区</td><td>静态枚举（JP/HK/SG…）</td><td>2201、4601</td></tr>
+        <tr><td><code>GROUP</code></td><td>集团</td><td>外部表（group表）</td><td>2203、4603</td></tr>
+        <tr><td><code>DISPUTE_NO</code></td><td>争议单号</td><td>系统生成</td><td>2204</td></tr>
+        <tr><td><code>ERROR_NO</code></td><td>差错单号</td><td>系统生成</td><td>2205</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== SECTION 6: 对账与差错 ===== -->
+  <div class="doc-section" id="reconciliation">
+    <h1>六、对账与差错处理</h1>
+
+    <h2>6.1 对账流程</h2>
+    <div class="flow-diagram">
+      <div class="flow-step">采集通道报表</div><div class="flow-arrow">→</div>
+      <div class="flow-step">生成系统快照</div><div class="flow-arrow">→</div>
+      <div class="flow-step active">自动匹配</div><div class="flow-arrow">→</div>
+      <div class="flow-step">差异识别</div><div class="flow-arrow">→</div>
+      <div class="flow-step">人工审核</div><div class="flow-arrow">→</div>
+      <div class="flow-step">调账处理</div><div class="flow-arrow">→</div>
+      <div class="flow-step">对账完成</div>
+    </div>
+
+    <h3>对账维度</h3>
+    <table class="req-table">
+      <thead><tr><th>对账类型</th><th>对账方</th><th>频率</th><th>核对内容</th><th>允许差异阈值</th></tr></thead>
+      <tbody>
+        <tr><td>通道对账</td><td>Adyen / Worldpay 报表</td><td>每日</td><td>交易笔数、金额、手续费</td><td>0（分厘必查）</td></tr>
+        <tr><td>银行对账</td><td>银行流水</td><td>每日</td><td>到账金额与系统清算金额</td><td>0</td></tr>
+        <tr><td>会计对账</td><td>总账科目余额</td><td>每日日终</td><td>各科目期末余额 = 期初 + 本期借方 - 本期贷方</td><td>0</td></tr>
+        <tr><td>商户对账</td><td>商户申报数据</td><td>每月</td><td>月度结算单与商户确认</td><td>待商户确认</td></tr>
+      </tbody>
+    </table>
+
+    <h3>对账状态标记体系</h3>
+    <table class="req-table">
+      <thead><tr><th>状态</th><th>说明</th><th>处理方式</th></tr></thead>
+      <tbody>
+        <tr><td><code>MATCHED</code></td><td>系统与通道完全匹配</td><td>自动标记，无需干预</td></tr>
+        <tr><td><code>PLATFORM_ONLY</code></td><td>系统有记录，通道无（平台单边账）</td><td>生成负向冲正流水，暂记账户挂起，等待通道补确认</td></tr>
+        <tr><td><code>CHANNEL_ONLY</code></td><td>通道有记录，系统无（通道单边账）</td><td>生成暂记账户入账，人工确认后补单</td></tr>
+        <tr><td><code>AMOUNT_MISMATCH</code></td><td>金额不一致</td><td>差额进暂记账户，人工审核</td></tr>
+        <tr><td><code>UNDER_REVIEW</code></td><td>人工审核中</td><td>等待人工处理</td></tr>
+        <tr><td><code>ADJUSTED</code></td><td>已调账处理</td><td>终态，保留调账记录</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="error-handling">6.2 差错处理原则</h2>
+    <div class="info-box orange">
+      <strong>核心原则：不修改原始记录，只增加新流水。</strong>任何差错处理、调账操作均通过生成新的流水记录实现，原始流水永不修改。这确保了审计线索的完整性。
+    </div>
+    <table class="req-table">
+      <thead><tr><th>差错类型</th><th>发现时处理</th><th>查清后处理</th></tr></thead>
+      <tbody>
+        <tr><td>平台单边账</td><td>生成冲正暂记流水；余额索引：SUSPENSE +amount</td><td>查清原因，生成调整流水还原或确认核销</td></tr>
+        <tr><td>通道单边账</td><td>生成暂记入账流水；余额索引：SUSPENSE +amount</td><td>通道确认后，转出暂记，生成正式入账</td></tr>
+        <tr><td>金额不一致</td><td>差额进暂记账户</td><td>与通道协商，收到或退回差额后核销暂记</td></tr>
+        <tr><td>退款失败</td><td>资金进差错暂记户</td><td>重新发起退款 / 原路退回 / 人工打款</td></tr>
+        <tr><td>重复入账</td><td>幂等检测拦截（不产生流水）</td><td>若已入账则告警，需走审核核销</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="suspense-account">6.3 暂记账户设计</h2>
+    <div class="info-box blue">
+      <strong>暂记账户（SUSPENSE）是系统的"安全网"：</strong>所有无法立即确认归属的资金，都先进暂记账户，确保系统借贷平衡，同时不影响其他账户的正常运作。暂记账户的余额应每天监控，超过 T+3 未处理的需自动告警。
+    </div>
+
+    <!-- PROTOTYPE: 对账管理 -->
+    <h3>原型：对账差异处理界面</h3>
+    <div class="proto-container">
+      <div class="proto-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="url">对账管理 / 差异处理</div>
+        <div class="proto-title">原型 P6.1 — 对账差异处理</div>
+      </div>
+      <div class="proto-body" style="padding:16px;">
+        <div class="stat-cards" style="grid-template-columns:repeat(5,1fr);">
+          <div class="stat-card"><div class="label">今日对账笔数</div><div class="value">12,847</div></div>
+          <div class="stat-card"><div class="label">匹配成功</div><div class="value" style="color:#52c41a">12,821</div></div>
+          <div class="stat-card"><div class="label">待处理差异</div><div class="value" style="color:#fa8c16">18</div></div>
+          <div class="stat-card"><div class="label">暂记余额</div><div class="value" style="color:#ff4d4f">¥45,200</div></div>
+          <div class="stat-card"><div class="label">超T+3未处理</div><div class="value" style="color:#ff4d4f">3</div></div>
+        </div>
+        <table class="proto-table">
+          <thead><tr><th>差错单号</th><th>通道</th><th>系统金额</th><th>通道金额</th><th>差额</th><th>差错类型</th><th>发现时间</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>ERR-2026-0418-001</code></td><td>Adyen</td>
+              <td>¥10,000</td><td>-</td><td style="color:#cf1322;">-¥10,000</td>
+              <td><span class="tag tag-p0">平台单边</span></td><td>04-18 03:12</td>
+              <td><span class="status status-pending">审核中</span></td>
+              <td class="ops"><a>详情</a><a>暂记入账</a><a class="danger">核销</a></td>
+            </tr>
+            <tr>
+              <td><code>ERR-2026-0418-002</code></td><td>Worldpay</td>
+              <td>¥5,100</td><td>¥5,000</td><td style="color:#cf1322;">+¥100</td>
+              <td><span class="tag tag-p1">金额不符</span></td><td>04-18 03:15</td>
+              <td><span class="status status-pending">审核中</span></td>
+              <td class="ops"><a>详情</a><a>暂记差额</a></td>
+            </tr>
+            <tr>
+              <td><code>ERR-2026-0415-008</code></td><td>Adyen</td>
+              <td>-</td><td>¥35,200</td><td style="color:#389e0d;">+¥35,200</td>
+              <td><span class="tag tag-p0">通道单边</span></td><td>04-15 04:00</td>
+              <td><span class="status status-frozen">超期告警</span></td>
+              <td class="ops"><a>详情</a><a>补单</a><a class="danger">核销</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 7: 清结算 ===== -->
+  <div class="doc-section" id="settlement-cycle">
+    <h1>七、清结算设计</h1>
+
+    <h2>7.1 结算周期与资金转移</h2>
+    <div class="info-box blue">
+      <strong>两步转移设计：</strong>(1) PENDING → AVAILABLE 由"结算事件"触发（价值日期到达），与出款频率无关；(2) AVAILABLE → PAID_OUT 由"出款指令"触发，按商户配置的出款频率执行。两步解耦确保结算状态准确，出款时机灵活。
+    </div>
+
+    <table class="req-table">
+      <thead><tr><th>步骤</th><th>触发条件</th><th>账户变化</th><th>会计分录</th></tr></thead>
+      <tbody>
+        <tr><td>PENDING → AVAILABLE</td><td>价值日期（Value Date）到达；默认 T+1</td><td>待结算余额减少，可提现余额增加</td><td>借：2201（待结算）/ 贷：2202（可提现）</td></tr>
+        <tr><td>AVAILABLE → PAID_OUT</td><td>结算周期到达（每日/每周/每月）或商户手动申请</td><td>可提现余额减少</td><td>借：2202（可提现）/ 贷：1122（银行）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>结算周期配置</h3>
+    <table class="req-table">
+      <thead><tr><th>出款频率</th><th>说明</th><th>支持条件</th></tr></thead>
+      <tbody>
+        <tr><td>次日自动</td><td>每个工作日自动出款前一日结算金额</td><td>默认选项，需开通次日达服务</td></tr>
+        <tr><td>每周</td><td>每周五统一出款</td><td>基础服务</td></tr>
+        <tr><td>每月</td><td>每月最后一个工作日出款</td><td>基础服务</td></tr>
+        <tr><td>手动</td><td>商户在可提现余额到达后手动申请</td><td>需满足最低出款金额</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="payout">7.2 出款流程</h2>
+    <div class="flow-diagram">
+      <div class="flow-step">达到结算周期</div><div class="flow-arrow">→</div>
+      <div class="flow-step">生成出款批次</div><div class="flow-arrow">→</div>
+      <div class="flow-step">财务预览确认</div><div class="flow-arrow">→</div>
+      <div class="flow-step active">执行出款</div><div class="flow-arrow">→</div>
+      <div class="flow-step">银行到账确认</div><div class="flow-arrow">→</div>
+      <div class="flow-step">更新流水状态</div>
+    </div>
+    <div class="info-box orange">
+      <strong>三层审核模型（应对财务对自动化出款的顾虑）：</strong>
+      第一层：出款前预览，财务可查看批次汇总和风险摘要后点击确认（心理掌控感）；
+      第二层：异常驱动审核，风控规则标记的可疑交易进入人工审核池；
+      第三层：事后对账，每日自动生成对账报告，财务核对（规则错误补救）。
+    </div>
+
+    <h2 id="clearing-service">7.3 清分服务</h2>
+    <p>清分服务在结算周期到达时，从商户待结算户中扣减集团管理费等分润，生成结算单，并将剩余资金转入可提现户。<strong>清分服务不依赖账务前置引擎的实时规则</strong>，是独立的批量服务。</p>
+
+    <table class="req-table">
+      <thead><tr><th>步骤</th><th>子账户变化</th><th>金额</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>1. 待结算户结转</td><td>PENDING -¥97</td><td>¥97</td><td>将待结算资金结转</td></tr>
+        <tr><td>2. 扣除集团管理费</td><td>GROUP_FEE +¥1.94</td><td>¥97 × 2% = ¥1.94</td><td>按配置表费率计算</td></tr>
+        <tr><td>3. 转入可提现户</td><td>AVAILABLE +¥95.06</td><td>¥97 - ¥1.94 = ¥95.06</td><td>商户最终可提现金额</td></tr>
+      </tbody>
+    </table>
+
+    <!-- PROTOTYPE: 结算管理 -->
+    <h3>原型：结算管理界面</h3>
+    <div class="proto-container">
+      <div class="proto-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="url">清结算 / 结算管理</div>
+        <div class="proto-title">原型 P7.1 — 结算管理</div>
+      </div>
+      <div class="proto-body" style="padding:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;align-items:center;">
+          <div style="display:flex;gap:8px;">
+            <input class="form-input" type="date" value="2026-04-17" style="width:140px;" />
+            <select class="form-select" style="width:120px;"><option>全部通道</option><option>Adyen</option><option>Worldpay</option></select>
+            <select class="form-select" style="width:120px;"><option>全部状态</option><option>待确认</option><option>处理中</option><option>已完成</option></select>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-default btn-sm">导出结算单</button>
+            <button class="btn btn-primary btn-sm">生成今日批次</button>
+          </div>
+        </div>
+        <!-- 批次预览 -->
+        <div style="background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:12px;margin-bottom:12px;">
+          <div style="font-weight:600;color:#ad4e00;margin-bottom:8px;">📋 出款批次预览 — 2026-04-17（待财务确认）</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;font-size:12px;">
+            <div><div style="color:#8c8c8c;">出款商户数</div><div style="font-size:18px;font-weight:700;color:#262626;">38</div></div>
+            <div><div style="color:#8c8c8c;">出款总金额</div><div style="font-size:18px;font-weight:700;color:#1890ff;">¥2,847,920</div></div>
+            <div><div style="color:#8c8c8c;">风控标记</div><div style="font-size:18px;font-weight:700;color:#ff4d4f;">2 笔</div></div>
+            <div><div style="color:#8c8c8c;">最高单笔</div><div style="font-size:18px;font-weight:700;color:#262626;">¥380,000</div></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn btn-primary btn-sm">✓ 确认执行出款</button>
+            <button class="btn btn-default btn-sm">查看明细</button>
+            <button class="btn btn-danger btn-sm">暂停批次</button>
+          </div>
+        </div>
+        <table class="proto-table">
+          <thead><tr><th>批次号</th><th>结算日期</th><th>商户数</th><th>金额（JPY）</th><th>通道</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td><code>BTH-20260417-001</code></td><td>2026-04-17</td><td>38</td><td style="font-weight:600;">¥2,847,920</td><td>Adyen</td><td><span class="status status-pending">待确认</span></td><td class="ops"><a>查看</a><a>导出</a></td></tr>
+            <tr><td><code>BTH-20260416-001</code></td><td>2026-04-16</td><td>41</td><td style="font-weight:600;">¥3,120,450</td><td>Adyen</td><td><span class="status status-active">已完成</span></td><td class="ops"><a>查看</a><a>导出</a></td></tr>
+            <tr><td><code>BTH-20260415-001</code></td><td>2026-04-15</td><td>39</td><td style="font-weight:600;">¥2,960,110</td><td>Worldpay</td><td><span class="status status-active">已完成</span></td><td class="ops"><a>查看</a><a>导出</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 8: 配置中心 ===== -->
+  <div class="doc-section" id="config-center">
+    <h1>八、配置中心</h1>
+
+    <h2>8.1 配置中心架构</h2>
+    <p>配置中心采用<strong>"模板-实例"两层架构</strong>，模板定义配置结构（元数据），实例存储具体配置值。新增配置类型无需开发介入。</p>
+
+    <div class="sub-account-grid">
+      <div class="sub-account-card">
+        <h4>📐 基础数据配置</h4>
+        <div class="balance-row"><span>实体类型配置</span><span>5 条</span></div>
+        <div class="balance-row"><span>子账户类型配置</span><span>11 条</span></div>
+        <div class="balance-row"><span>单位类型配置</span><span>3 条</span></div>
+        <div class="balance-row"><span>辅助核算配置</span><span>7 条</span></div>
+      </div>
+      <div class="sub-account-card">
+        <h4>📚 字典数据配置</h4>
+        <div class="balance-row"><span>支付渠道</span><span>8 条</span></div>
+        <div class="balance-row"><span>卡品牌</span><span>12 条</span></div>
+        <div class="balance-row"><span>国家/地区</span><span>180 条</span></div>
+        <div class="balance-row"><span>币种</span><span>36 条</span></div>
+      </div>
+      <div class="sub-account-card">
+        <h4>⚙️ 规则模板配置</h4>
+        <div class="balance-row"><span>触发条件模板</span><span>12 条</span></div>
+        <div class="balance-row"><span>入账步骤模板</span><span>8 条</span></div>
+        <div class="balance-row"><span>会计分录模板</span><span>8 条</span></div>
+        <div class="balance-row"><span>科目配置</span><span>15 条</span></div>
+      </div>
+    </div>
+
+    <h2 id="config-prototypes">8.2 配置界面原型</h2>
+
+    <!-- PROTOTYPE: 配置中心完整 -->
+    <div class="proto-container">
+      <div class="proto-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="url">统一配置中心</div>
+        <div class="proto-title">原型 P8.1 — 配置中心（入账步骤模板）</div>
+      </div>
+      <div class="proto-body">
+        <div class="sys-layout" style="height:640px;">
+          <div class="sys-sidebar">
+            <div class="s-logo">⚙️ 配置中心</div>
+            <ul>
+              <li class="group-title">基础数据</li>
+              <li class="sub-item">实体类型配置</li>
+              <li class="sub-item">子账户类型配置</li>
+              <li class="sub-item">单位类型配置</li>
+              <li class="sub-item">辅助核算配置</li>
+              <li class="group-title">字典数据</li>
+              <li class="sub-item">支付渠道配置</li>
+              <li class="sub-item">卡品牌配置</li>
+              <li class="sub-item">国家/地区配置</li>
+              <li class="sub-item">币种配置</li>
+              <li class="group-title">规则模板</li>
+              <li class="sub-item">触发条件模板</li>
+              <li class="active sub-item">入账步骤模板</li>
+              <li class="sub-item">会计分录模板</li>
+              <li class="group-title">分润配置</li>
+              <li class="sub-item">集团分润配置</li>
+              <li class="sub-item">科目配置</li>
+            </ul>
+          </div>
+          <div class="sys-content">
+            <div class="sys-topbar">
+              <div class="breadcrumb">配置中心 &gt; 规则模板 &gt; <span>入账步骤模板</span></div>
+              <button class="btn btn-primary btn-sm">+ 新增模板</button>
+            </div>
+            <div class="sys-main">
+              <div style="background:#fff;border-radius:6px;border:1px solid #f0f0f0;padding:12px;margin-bottom:12px;">
+                <table class="proto-table">
+                  <thead><tr><th>模板名称</th><th>场景代码</th><th>步骤数</th><th>状态</th><th>更新时间</th><th>操作</th></tr></thead>
+                  <tbody>
+                    <tr><td style="font-weight:600;">伞形下沉—正向消费</td><td><code>SCE_PURCHASE</code></td><td>6步</td><td><span class="status status-active">启用</span></td><td>2026-03-10</td><td class="ops"><a>编辑</a><a>复制</a><a>预览</a></td></tr>
+                    <tr><td style="font-weight:600;">伞形下沉—退货退款</td><td><code>SCE_REFUND</code></td><td>6步</td><td><span class="status status-active">启用</span></td><td>2026-03-12</td><td class="ops"><a>编辑</a><a>复制</a><a>预览</a></td></tr>
+                    <tr><td style="font-weight:600;">预授权完成入账</td><td><code>SCE_AUTH_CAPTURE</code></td><td>4步</td><td><span class="status status-active">启用</span></td><td>2026-03-15</td><td class="ops"><a>编辑</a><a>复制</a><a>预览</a></td></tr>
+                    <tr><td style="font-weight:600;">DCC多币种入账</td><td><code>SCE_DCC</code></td><td>7步</td><td><span class="status status-pending">草稿</span></td><td>2026-04-01</td><td class="ops"><a>编辑</a><a>复制</a><a>预览</a></td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- 步骤编辑区 -->
+              <div style="background:#fff;border-radius:6px;border:1px solid #1890ff;padding:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                  <div><span style="font-weight:600;font-size:13px;">编辑模板：</span><span style="color:#1890ff;font-weight:600;">伞形下沉—正向消费（SCE_PURCHASE）</span></div>
+                  <div style="display:flex;gap:6px;">
+                    <button class="btn btn-default btn-sm">取消</button>
+                    <button class="btn btn-primary btn-sm">保存</button>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                  <div class="form-group"><label class="form-label required">模板名称</label><input class="form-input" value="伞形下沉—正向消费" /></div>
+                  <div class="form-group"><label class="form-label required">场景代码</label><input class="form-input" value="SCE_PURCHASE" disabled /></div>
+                  <div class="form-group"><label class="form-label">失败处理策略</label><select class="form-select"><option>全部回滚（ROLLBACK_ALL）</option><option>挂起人工处理（SUSPEND）</option></select></div>
+                  <div class="form-group"><label class="form-label">状态</label><label class="toggle-switch"><input type="checkbox" checked /><div class="toggle-slider"></div></label><span style="margin-left:8px;font-size:12px;color:#595959;">启用</span></div>
+                </div>
+
+                <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#595959;">入账步骤配置（拖拽调整顺序）</div>
+                <!-- 步骤表头 -->
+                <div style="display:grid;grid-template-columns:24px 100px 80px 80px 220px 100px 30px;gap:4px;font-size:11px;font-weight:600;color:#0050b3;background:#e6f7ff;padding:6px 8px;border-radius:4px 4px 0 0;border:1px solid #bae0ff;">
+                  <div>⋮</div><div>子账户类型</div><div>实体类型</div><div>方向</div><div>变动金额</div><div>实体ID来源</div><div>删</div>
+                </div>
+                <!-- 步骤行 -->
+                <div style="border:1px solid #f0f0f0;border-top:none;border-radius:0 0 4px 4px;overflow:hidden;">
+                  <div style="display:grid;grid-template-columns:24px 100px 80px 80px 220px 100px 30px;gap:4px;padding:6px 8px;border-bottom:1px solid #f5f5f5;font-size:11px;align-items:center;">
+                    <div style="color:#bfbfbf;cursor:move;">⋮⋮</div>
+                    <div><select class="form-select" style="font-size:11px;padding:3px;"><option>Adyen通道应收款</option></select></div>
+                    <div><select class="form-select" style="font-size:11px;padding:3px;"><option>通道</option></select></div>
+                    <div><select class="form-select" style="font-size:11px;padding:3px;"><option style="color:#389e0d;">正向</option></select></div>
+                    <div><input class="form-input" style="font-size:11px;" value="$.transaction_data.pay_amount" /></div>
+                    <div><input class="form-input" style="font-size:11px;" value="$.payment_channel" /></div>
+                    <div style="color:#ff4d4f;cursor:pointer;text-align:center;">×</div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:24px 100px 80px 80px 220px 100px 30px;gap:4px;padding:6px 8px;border-bottom:1px solid #f5f5f5;font-size:11px;align-items:center;background:#fafafa;">
+                    <div style="color:#bfbfbf;cursor:move;">⋮⋮</div>
+                    <div><select class="form-select" style="font-size:11px;padding:3px;"><option>KPay JP 交易户</option></select></div>
+                    <div><select class="form-select" style="font-size:11px;padding:3px;"><option>JP_ACQ_KPAY</option></select></div>
+                    <div><select class="form-select" style="font-size:11px;padding:3px;"><option style="color:#389e0d;">正向</option></select></div>
+                    <div><input class="form-input" style="font-size:11px;" value="$.transaction_data.pay_amount" /></div>
+                    <div><input class="form-input" style="font-size:11px;" value="JP_ACQ_KPAY（固定）" /></div>
+                    <div style="color:#ff4d4f;cursor:pointer;text-align:center;">×</div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:24px 100px 80px 80px 220px 100px 30px;gap:4px;padding:6px 8px;border-bottom:1px solid #f5f5f5;font-size:11px;align-items:center;">
+                    <div style="color:#bfbfbf;cursor:move;">⋮⋮</div>
+                    <div><select class="form-select" style="font-size:11px;padding:3px;"><option>KPay JP 交易户</option></select></div>
+                    <div><select class="form-select" style="font-size:11px;padding:3px;"><option>JP_ACQ_KPAY</option></select></div>
+                    <div><select class="form-select" style="font-size:11px;padding:3px;color:#cf1322;"><option style="color:#cf1322;">负向</option></select></div>
+                    <div><input class="form-input" style="font-size:11px;" value="$.transaction_data.transaction_fee" /></div>
+                    <div><input class="form-input" style="font-size:11px;" value="JP_ACQ_KPAY（固定）" /></div>
+                    <div style="color:#ff4d4f;cursor:pointer;text-align:center;">×</div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:24px 100px 80px 80px 220px 100px 30px;gap:4px;padding:6px 8px;font-size:11px;align-items:center;background:#fafafa;">
+                    <div style="color:#bfbfbf;cursor:move;">⋮⋮</div>
+                    <div><select class="form-select" style="font-size:11px;padding:3px;"><option>门店交易户</option></select></div>
+                    <div><select class="form-select" style="font-size:11px;padding:3px;"><option>门店</option></select></div>
+                    <div><select class="form-select" style="font-size:11px;padding:3px;"><option style="color:#389e0d;">正向</option></select></div>
+                    <div><select class="form-select" style="font-size:11px;padding:3px;"><option>剩余金额</option></select></div>
+                    <div><input class="form-input" style="font-size:11px;" value="$.kpay_merchant_no" /></div>
+                    <div style="color:#ff4d4f;cursor:pointer;text-align:center;">×</div>
+                  </div>
+                </div>
+                <button class="btn btn-default btn-sm" style="margin-top:8px;">+ 添加步骤</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 9: 并发与幂等 ===== -->
+  <div class="doc-section" id="idempotency">
+    <h1>九、并发控制与幂等性</h1>
+
+    <h2>9.1 幂等性控制</h2>
+    <p>幂等性是账务系统的核心安全机制，防止因网络重试、系统重启等导致的重复入账。</p>
+
+    <h3>三层拦截架构</h3>
+    <div class="flow-diagram" style="flex-direction:column;align-items:flex-start;gap:8px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="flow-step active" style="min-width:180px;">第一层：Redis 分布式锁</div>
+        <span style="font-size:12px;color:#595959;">事前拦截：请求进来先抢锁，抢不到直接返回"处理中"</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="flow-step" style="min-width:180px;">第二层：数据库唯一约束</div>
+        <span style="font-size:12px;color:#595959;">事中拦截：幂等键 DB 唯一索引，写入重复抛异常</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="flow-step" style="min-width:180px;">第三层：状态机版本号</div>
+        <span style="font-size:12px;color:#595959;">逻辑拦截：乐观锁 version 字段，并发更新余额防止超提</span>
+      </div>
+    </div>
+
+    <h3>幂等键设计</h3>
+    <div class="code-block">
+<span class="cm">-- 幂等键格式</span>
+<span class="str">"idem:{transaction_id}:{rule_id}:{step_no}:{account_id}"</span>
+
+<span class="cm">-- 示例</span>
+<span class="str">"idem:TXN-20260418-00123:RULE_SCE_PURCHASE:3:ACC_KPAY_TRD_001"</span>
+
+<span class="cm">-- 幂等记录表</span>
+CREATE TABLE idempotency_record (
+    <span class="key">idem_key</span>    VARCHAR(200)  <span class="kw">PRIMARY KEY</span>,
+    <span class="key">status</span>      VARCHAR(20),   <span class="cm">-- PROCESSING | SUCCESS | FAILED</span>
+    <span class="key">result</span>      TEXT,          <span class="cm">-- 执行结果快照</span>
+    <span class="key">created_at</span>  TIMESTAMP,
+    <span class="key">expired_at</span>  TIMESTAMP      <span class="cm">-- TTL: 24小时</span>
+);
+    </div>
+
+    <h3>重复请求处理策略</h3>
+    <table class="req-table">
+      <thead><tr><th>检测结果</th><th>处理方式</th><th>返回给调用方</th></tr></thead>
+      <tbody>
+        <tr><td><code>NOT_EXIST</code></td><td>正常执行入账</td><td>200 + 入账结果</td></tr>
+        <tr><td><code>PROCESSING</code></td><td>等待或返回处理中</td><td>202 Processing</td></tr>
+        <tr><td><code>SUCCESS</code></td><td>返回缓存的成功结果（不重复入账）</td><td>200 + 历史结果</td></tr>
+        <tr><td><code>FAILED</code></td><td>需人工确认后决定是否重试</td><td>409 + 错误详情</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="concurrency">9.2 并发控制</h2>
+    <div class="code-block">
+<span class="cm">-- 余额更新：乐观锁防并发超提</span>
+UPDATE balance_index
+   SET balance = balance + <span class="num">:delta</span>,
+       version = version + <span class="num">1</span>,
+       last_updated = NOW()
+ WHERE account_id = <span class="str">:account_id</span>
+   AND currency  = <span class="str">:currency</span>
+   AND dimension = <span class="str">:dimension</span>
+   AND version   = <span class="num">:expected_version</span>  <span class="cm">-- 版本号匹配，CAS</span>
+   AND balance   >= <span class="num">:abs_delta</span>;          <span class="cm">-- 余额充足（仅负向操作需此条件）</span>
+
+<span class="cm">-- 影响行数 = 0 时，表示并发冲突或余额不足，需重试或告警</span>
+    </div>
+
+    <h3>批量结算单并发处理</h3>
+    <div class="info-box blue">
+      <strong>批量报表并发策略：</strong>
+      (1) <strong>异步队列</strong>：结算单/月结邮件生成任务放入队列（如 RocketMQ），Worker 池异步消费，避免同步阻塞；
+      (2) <strong>数据快照</strong>：查询使用"日终余额快照 + 当日增量流水"组合，历史月份直接读快照；
+      (3) <strong>任务幂等</strong>：每个结算周期维护生成状态，防止重复触发；
+      (4) <strong>读库分离</strong>：报表查询走只读副本，不影响主库写入。
+    </div>
+  </div>
+
+  <!-- ===== SECTION 10: 原型汇总 ===== -->
+  <div class="doc-section" id="proto-account-mgmt">
+    <h1>十、系统原型汇总</h1>
+
+    <h2 id="proto-balance-query">10.1 余额查询原型</h2>
+    <div class="proto-container">
+      <div class="proto-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="url">账户管理 / 余额查询</div>
+        <div class="proto-title">原型 P10.1 — 多维余额查询</div>
+      </div>
+      <div class="proto-body" style="padding:20px;">
+        <div style="display:flex;gap:12px;margin-bottom:16px;">
+          <div class="form-group" style="flex:1;margin-bottom:0;"><label class="form-label">账户ID / 商户名称</label><input class="form-input" value="MCH_SBX_001 - 星巴克日本 KK" /></div>
+          <div class="form-group" style="width:120px;margin-bottom:0;"><label class="form-label">币种</label><select class="form-select"><option>JPY</option></select></div>
+          <div style="display:flex;align-items:flex-end;"><button class="btn btn-primary">查询余额</button></div>
+        </div>
+
+        <!-- 余额卡片 -->
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;">
+          <div style="background:#f0f8ff;border:1px solid #91d5ff;border-radius:6px;padding:14px;text-align:center;">
+            <div style="font-size:11px;color:#0050b3;margin-bottom:4px;">可用余额</div>
+            <div style="font-size:20px;font-weight:700;color:#1890ff;">¥138,000</div>
+            <div style="font-size:10px;color:#8c8c8c;margin-top:2px;">可立即提现</div>
+          </div>
+          <div style="background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:14px;text-align:center;">
+            <div style="font-size:11px;color:#ad4e00;margin-bottom:4px;">待结算</div>
+            <div style="font-size:20px;font-weight:700;color:#fa8c16;">¥45,000</div>
+            <div style="font-size:10px;color:#8c8c8c;margin-top:2px;">T+1 可用</div>
+          </div>
+          <div style="background:#fff1f0;border:1px solid #ffa39e;border-radius:6px;padding:14px;text-align:center;">
+            <div style="font-size:11px;color:#820014;margin-bottom:4px;">风控冻结</div>
+            <div style="font-size:20px;font-weight:700;color:#ff4d4f;">¥50,000</div>
+            <div style="font-size:10px;color:#8c8c8c;margin-top:2px;">待审核</div>
+          </div>
+          <div style="background:#fff1f0;border:1px solid #ffa39e;border-radius:6px;padding:14px;text-align:center;">
+            <div style="font-size:11px;color:#820014;margin-bottom:4px;">争议冻结</div>
+            <div style="font-size:20px;font-weight:700;color:#ff4d4f;">¥12,000</div>
+            <div style="font-size:10px;color:#8c8c8c;margin-top:2px;">拒付处理中</div>
+          </div>
+          <div style="background:#f9f0ff;border:1px solid #d3adf7;border-radius:6px;padding:14px;text-align:center;">
+            <div style="font-size:11px;color:#531dab;margin-bottom:4px;">账面总额</div>
+            <div style="font-size:20px;font-weight:700;color:#722ed1;">¥245,000</div>
+            <div style="font-size:10px;color:#8c8c8c;margin-top:2px;">所有维度合计</div>
+          </div>
+        </div>
+
+        <!-- 待结算明细 -->
+        <div style="margin-bottom:12px;">
+          <div style="font-size:12px;font-weight:600;margin-bottom:6px;color:#595959;">待结算资金明细（按价值日期）</div>
+          <table class="proto-table">
+            <thead><tr><th>价值日期</th><th>交易笔数</th><th>金额（JPY）</th><th>通道</th><th>状态</th></tr></thead>
+            <tbody>
+              <tr><td>2026-04-18（今日）</td><td>234</td><td>¥18,500</td><td>Adyen</td><td><span class="status status-pending">今日结算</span></td></tr>
+              <tr><td>2026-04-17（昨日）</td><td>189</td><td>¥15,200</td><td>Adyen</td><td><span class="status status-settled">已结算</span></td></tr>
+              <tr><td>2026-04-16</td><td>201</td><td>¥11,300</td><td>Worldpay</td><td><span class="status status-settled">已结算</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <h2 id="proto-ledger">10.2 账簿流水原型</h2>
+    <div class="proto-container">
+      <div class="proto-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="url">资金流水 / 账簿流水</div>
+        <div class="proto-title">原型 P10.2 — 账簿流水查询</div>
+      </div>
+      <div class="proto-body" style="padding:16px;">
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+          <input class="form-input" style="width:160px;" placeholder="账户ID" value="MCH_SBX_001" />
+          <input class="form-input" type="date" style="width:130px;" value="2026-04-17" />
+          <span style="line-height:30px;color:#8c8c8c;font-size:12px;">至</span>
+          <input class="form-input" type="date" style="width:130px;" value="2026-04-18" />
+          <select class="form-select" style="width:120px;"><option>全部操作类型</option><option>交易入账</option><option>退款</option><option>结算</option><option>冻结/解冻</option></select>
+          <select class="form-select" style="width:100px;"><option>全部状态</option><option>SETTLED</option><option>PENDING</option><option>FROZEN</option></select>
+          <button class="btn btn-primary btn-sm">查询</button>
+          <button class="btn btn-default btn-sm">导出</button>
+        </div>
+        <table class="proto-table" style="font-size:11px;">
+          <thead><tr><th>流水号</th><th>时间</th><th>操作类型</th><th>资金状态</th><th>方向</th><th>金额（JPY）</th><th>余额维度</th><th>余额快照</th><th>关联交易</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>LDG-20260418-000123</code></td>
+              <td>04-18 14:32:10</td>
+              <td>交易入账</td>
+              <td><span class="status status-pending">PENDING</span></td>
+              <td style="color:#389e0d;font-weight:600;">正向</td>
+              <td style="color:#389e0d;font-weight:600;">+¥97</td>
+              <td>PENDING</td>
+              <td>¥45,097</td>
+              <td><code>TXN-000456</code></td>
+              <td>SCE_PURCHASE</td>
+            </tr>
+            <tr style="background:#f6ffed;">
+              <td><code>LDG-20260418-000124</code></td>
+              <td>04-18 14:32:10</td>
+              <td>手续费</td>
+              <td><span class="status status-settled">SETTLED</span></td>
+              <td style="color:#389e0d;font-weight:600;">正向</td>
+              <td style="color:#389e0d;font-weight:600;">+¥3</td>
+              <td>AVAILABLE</td>
+              <td>¥138,003</td>
+              <td><code>TXN-000456</code></td>
+              <td>平台手续费收入</td>
+            </tr>
+            <tr>
+              <td><code>LDG-20260418-000101</code></td>
+              <td>04-18 10:15:22</td>
+              <td>状态变更</td>
+              <td><span class="status status-frozen">FROZEN_RISK</span></td>
+              <td style="color:#cf1322;font-weight:600;">冻结</td>
+              <td style="color:#cf1322;font-weight:600;">-¥50,000</td>
+              <td>AVAILABLE→FROZEN_RISK</td>
+              <td>¥88,000</td>
+              <td>-</td>
+              <td>风控冻结：异常交易审查 ERR-0418-001</td>
+            </tr>
+            <tr style="background:#f6ffed;">
+              <td><code>LDG-20260417-009876</code></td>
+              <td>04-17 22:00:05</td>
+              <td>结算转移</td>
+              <td><span class="status status-settled">SETTLED</span></td>
+              <td style="color:#389e0d;font-weight:600;">正向</td>
+              <td style="color:#389e0d;font-weight:600;">+¥15,200</td>
+              <td>PENDING→AVAILABLE</td>
+              <td>¥153,200</td>
+              <td>BTH-20260416</td>
+              <td>价值日期到达，批量结算</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:8px;font-size:11px;color:#8c8c8c;">共 1,284 条流水 &nbsp;|&nbsp; 期间净变动：+¥12,397 &nbsp;|&nbsp; 期末余额：¥245,000</div>
+      </div>
+    </div>
+
+    <h2 id="proto-recon">10.3 对账仪表盘原型</h2>
+    <div class="proto-container">
+      <div class="proto-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="url">对账管理 / 对账仪表盘</div>
+        <div class="proto-title">原型 P10.3 — 对账仪表盘</div>
+      </div>
+      <div class="proto-body" style="padding:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="font-size:14px;font-weight:600;">对账仪表盘 — 2026-04-18</div>
+          <div style="display:flex;gap:8px;">
+            <input class="form-input" type="date" value="2026-04-18" style="width:140px;" />
+            <select class="form-select" style="width:120px;"><option>Adyen JP</option><option>Worldpay</option></select>
+            <button class="btn btn-primary btn-sm">刷新</button>
+          </div>
+        </div>
+
+        <div class="stat-cards" style="grid-template-columns:repeat(5,1fr);margin-bottom:16px;">
+          <div class="stat-card"><div class="label">通道报表笔数</div><div class="value">12,847</div></div>
+          <div class="stat-card"><div class="label">系统记录笔数</div><div class="value">12,847</div></div>
+          <div class="stat-card"><div class="label">完全匹配</div><div class="value" style="color:#52c41a">12,821</div><div class="sub">匹配率 99.86%</div></div>
+          <div class="stat-card"><div class="label">待处理差异</div><div class="value" style="color:#fa8c16">18</div><div class="sub">涉及 ¥45,200</div></div>
+          <div class="stat-card"><div class="label">自动化率</div><div class="value" style="color:#1890ff">97.8%</div></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <!-- 差异类型分布 -->
+          <div style="background:#fff;border:1px solid #f0f0f0;border-radius:6px;padding:12px;">
+            <div style="font-size:12px;font-weight:600;margin-bottom:10px;">差异类型分布</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#ff4d4f;"></div>
+                <span>平台单边账</span>
+                <div style="flex:1;height:8px;background:#f5f5f5;border-radius:4px;overflow:hidden;"><div style="width:33%;height:100%;background:#ff4d4f;"></div></div>
+                <span>6 笔</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#fa8c16;"></div>
+                <span>通道单边账</span>
+                <div style="flex:1;height:8px;background:#f5f5f5;border-radius:4px;overflow:hidden;"><div style="width:44%;height:100%;background:#fa8c16;"></div></div>
+                <span>8 笔</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#fadb14;"></div>
+                <span>金额不符</span>
+                <div style="flex:1;height:8px;background:#f5f5f5;border-radius:4px;overflow:hidden;"><div style="width:22%;height:100%;background:#fadb14;"></div></div>
+                <span>4 笔</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 暂记账户监控 -->
+          <div style="background:#fff;border:1px solid #f0f0f0;border-radius:6px;padding:12px;">
+            <div style="font-size:12px;font-weight:600;margin-bottom:10px;">暂记账户监控（余额应趋近于0）</div>
+            <table class="proto-table" style="font-size:11px;">
+              <thead><tr><th>科目</th><th>余额</th><th>最老记录</th><th>预警</th></tr></thead>
+              <tbody>
+                <tr><td>差错暂记账户</td><td style="color:#cf1322;font-weight:600;">¥35,200</td><td>T+8</td><td><span class="tag tag-p0">超期</span></td></tr>
+                <tr><td>退款暂记</td><td>¥10,000</td><td>T+2</td><td><span class="tag tag-p1">注意</span></td></tr>
+                <tr><td>争议冻结暂记</td><td>¥12,000</td><td>T+1</td><td><span class="tag tag-p2">正常</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 id="proto-settlement">10.4 商户余额总览原型</h2>
+    <div class="proto-container">
+      <div class="proto-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="url">账户管理 / 商户余额总览</div>
+        <div class="proto-title">原型 P10.4 — 商户余额总览（伞形账户结构展示）</div>
+      </div>
+      <div class="proto-body" style="padding:20px;">
+        <!-- 账户树形结构 -->
+        <div style="font-size:12px;font-weight:600;margin-bottom:12px;">账户层级结构 — 星巴克日本 KK（MCH_SBX_001）</div>
+        <div class="account-tree">
+          <!-- 实体账户 -->
+          <div class="node" style="background:#e6f7ff;border-color:#91d5ff;">
+            <span class="icon">🏢</span>
+            <span class="name">星巴克日本 KK</span>
+            <span class="code">MCH_SBX_001 · 商户（L4）</span>
+            <span class="balance">账面总额 ¥1,245,000</span>
+          </div>
+          <div class="level">
+            <!-- 子账户 -->
+            <div class="node">
+              <span class="icon">💰</span>
+              <span class="name">交易汇集户（TRADE）</span>
+              <span class="code">ACC_SBX_TRD_001 · JPY</span>
+              <span class="balance">¥0（过渡账户，实时归零）</span>
+            </div>
+            <div class="node">
+              <span class="icon">⏳</span>
+              <span class="name">待结算户（PENDING）</span>
+              <span class="code">ACC_SBX_PND_001 · JPY</span>
+              <span class="balance" style="color:#fa8c16;">¥245,000</span>
+            </div>
+            <div class="node">
+              <span class="icon">✅</span>
+              <span class="name">可提现户（WITHDRAWABLE）</span>
+              <span class="code">ACC_SBX_WDR_001 · JPY</span>
+              <span class="balance" style="color:#52c41a;">¥838,000</span>
+            </div>
+            <div class="node">
+              <span class="icon">💴</span>
+              <span class="name">手续费户（MERCHANT_FEE）</span>
+              <span class="code">ACC_SBX_FEE_001 · JPY</span>
+              <span class="balance">¥50,000</span>
+            </div>
+            <div class="node">
+              <span class="icon">🔒</span>
+              <span class="name">保证金户（DEPOSIT）</span>
+              <span class="code">ACC_SBX_DEP_001 · JPY</span>
+              <span class="balance">¥100,000</span>
+            </div>
+            <div class="node" style="background:#fff1f0;border-color:#ffa39e;">
+              <span class="icon">⚠️</span>
+              <span class="name">争议冻结户（DISPUTE）</span>
+              <span class="code">ACC_SBX_DSP_001 · JPY</span>
+              <span class="balance" style="color:#ff4d4f;">¥12,000（2笔拒付）</span>
+            </div>
+          </div>
+          <!-- 门店子账户 -->
+          <div class="level">
+            <div style="font-size:11px;color:#8c8c8c;margin-bottom:4px;">门店账户（L5）</div>
+            <div class="node">
+              <span class="icon">🏪</span>
+              <span class="name">南京西路旗舰店</span>
+              <span class="code">STORE_SBX_NJ01 · JPY</span>
+              <span class="balance">¥127,500</span>
+            </div>
+            <div class="node">
+              <span class="icon">🏪</span>
+              <span class="name">涩谷 109 店</span>
+              <span class="code">STORE_SBX_SB02 · JPY</span>
+              <span class="balance">¥89,200</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 id="proto-config">10.5 会计分录模板配置原型</h2>
+    <div class="proto-container">
+      <div class="proto-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="url">配置中心 / 会计分录模板</div>
+        <div class="proto-title">原型 P10.5 — 会计分录模板配置</div>
+      </div>
+      <div class="proto-body" style="padding:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:600;">会计分录模板</div>
+          <button class="btn btn-primary btn-sm">+ 新增模板</button>
+        </div>
+        <table class="proto-table" style="margin-bottom:16px;">
+          <thead><tr><th>模板名称</th><th>场景代码</th><th>分录条数</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>正向交易分录</td><td><code>SCE_PURCHASE</code></td><td>3条</td><td><span class="status status-active">启用</span></td><td class="ops"><a>编辑</a><a>复制</a></td></tr>
+            <tr><td>退货分录</td><td><code>SCE_REFUND</code></td><td>3条</td><td><span class="status status-active">启用</span></td><td class="ops"><a>编辑</a><a>复制</a></td></tr>
+            <tr><td>结算转移分录</td><td><code>SCE_SETTLE</code></td><td>2条</td><td><span class="status status-active">启用</span></td><td class="ops"><a>编辑</a><a>复制</a></td></tr>
+          </tbody>
+        </table>
+
+        <!-- 分录编辑 -->
+        <div style="border:1px solid #1890ff;border-radius:6px;padding:16px;">
+          <div style="font-weight:600;font-size:13px;color:#0050b3;margin-bottom:12px;">编辑：正向交易分录（SCE_PURCHASE）</div>
+          <!-- 分录头 -->
+          <div style="display:grid;grid-template-columns:24px 1fr 1fr 1fr 1fr 30px;gap:4px;font-size:11px;font-weight:600;color:#0050b3;background:#e6f7ff;padding:6px 8px;border-radius:4px 4px 0 0;border:1px solid #bae0ff;">
+            <div>⋮</div><div>科目（搜索选择）</div><div>借方金额来源</div><div>贷方金额来源</div><div>辅助核算</div><div>删</div>
+          </div>
+          <div style="border:1px solid #f0f0f0;border-top:none;border-radius:0 0 4px 4px;">
+            <div style="display:grid;grid-template-columns:24px 1fr 1fr 1fr 1fr 30px;gap:4px;padding:6px 8px;border-bottom:1px solid #f5f5f5;font-size:11px;align-items:center;">
+              <div style="color:#bfbfbf;">⋮⋮</div>
+              <div><input class="form-input" style="font-size:11px;" value="1121 - 通道应收款" /></div>
+              <div><input class="form-input" style="font-size:11px;" value="$.pay_amount" /></div>
+              <div><input class="form-input" style="font-size:11px;" value="-" /></div>
+              <div><input class="form-input" style="font-size:11px;" value="通道=$.channel" /></div>
+              <div style="color:#ff4d4f;cursor:pointer;text-align:center;">×</div>
+            </div>
+            <div style="display:grid;grid-template-columns:24px 1fr 1fr 1fr 1fr 30px;gap:4px;padding:6px 8px;border-bottom:1px solid #f5f5f5;font-size:11px;align-items:center;background:#fafafa;">
+              <div style="color:#bfbfbf;">⋮⋮</div>
+              <div><input class="form-input" style="font-size:11px;" value="4601 - 平台手续费收入" /></div>
+              <div><input class="form-input" style="font-size:11px;" value="-" /></div>
+              <div><input class="form-input" style="font-size:11px;" value="$.transaction_fee" /></div>
+              <div><input class="form-input" style="font-size:11px;" value="通道, 商户" /></div>
+              <div style="color:#ff4d4f;cursor:pointer;text-align:center;">×</div>
+            </div>
+            <div style="display:grid;grid-template-columns:24px 1fr 1fr 1fr 1fr 30px;gap:4px;padding:6px 8px;font-size:11px;align-items:center;">
+              <div style="color:#bfbfbf;">⋮⋮</div>
+              <div><input class="form-input" style="font-size:11px;" value="2201 - 应付商户款-待结算" /></div>
+              <div><input class="form-input" style="font-size:11px;" value="-" /></div>
+              <div><input class="form-input" style="font-size:11px;" value="剩余金额" /></div>
+              <div><input class="form-input" style="font-size:11px;" value="商户, 地区" /></div>
+              <div style="color:#ff4d4f;cursor:pointer;text-align:center;">×</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+            <button class="btn btn-default btn-sm">+ 添加分录行</button>
+            <div style="font-size:11px;color:#595959;">借方合计：<strong style="color:#cf1322;">$.pay_amount</strong> &nbsp;|&nbsp; 贷方合计：<strong style="color:#389e0d;">$.transaction_fee + 剩余</strong> &nbsp;✓ 借贷平衡</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 规则触发条件原型 -->
+    <h2>10.6 入账规则触发条件配置原型</h2>
+    <div class="proto-container">
+      <div class="proto-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="url">配置中心 / 触发条件模板</div>
+        <div class="proto-title">原型 P10.6 — 触发条件配置</div>
+      </div>
+      <div class="proto-body" style="padding:16px;">
+        <div style="margin-bottom:12px;font-size:13px;font-weight:600;">入账规则管理</div>
+        <table class="proto-table" style="margin-bottom:16px;">
+          <thead><tr><th>规则名称</th><th>优先级</th><th>触发条件概要</th><th>关联步骤模板</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>日本Adyen正向消费</td><td>10</td><td>事件=PURCHASE AND 通道=Adyen AND 国家=JP</td><td>伞形下沉-正向消费</td><td><span class="status status-active">启用</span></td><td class="ops"><a>编辑</a><a>复制</a><a>测试</a></td></tr>
+            <tr><td>日本Adyen退货</td><td>10</td><td>事件=REFUND AND 通道=Adyen AND 国家=JP</td><td>伞形下沉-退货</td><td><span class="status status-active">启用</span></td><td class="ops"><a>编辑</a><a>复制</a><a>测试</a></td></tr>
+            <tr><td>大额交易风控标记</td><td>5</td><td>交易金额 &gt; ¥100,000</td><td>（内置风控流程）</td><td><span class="status status-active">启用</span></td><td class="ops"><a>编辑</a><a>复制</a><a>测试</a></td></tr>
+          </tbody>
+        </table>
+
+        <!-- 条件组构建器 -->
+        <div style="border:1px solid #1890ff;border-radius:6px;padding:16px;">
+          <div style="font-weight:600;font-size:13px;color:#0050b3;margin-bottom:12px;">编辑触发条件 — 日本Adyen正向消费</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span style="font-size:12px;color:#595959;">条件关系：</span>
+            <select class="form-select" style="width:80px;"><option>AND</option><option>OR</option></select>
+          </div>
+          <!-- 条件行 -->
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:11px;color:#8c8c8c;width:24px;">①</span>
+              <select class="form-select" style="width:160px;"><option>事件类型</option></select>
+              <select class="form-select" style="width:80px;"><option>=</option></select>
+              <input class="form-input" style="width:180px;" value="TRANSACTION_SUCCESS" />
+              <button class="btn btn-danger btn-sm">×</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:11px;color:#8c8c8c;width:24px;">②</span>
+              <select class="form-select" style="width:160px;"><option>支付通道</option></select>
+              <select class="form-select" style="width:80px;"><option>=</option></select>
+              <select class="form-select" style="width:180px;"><option>Adyen JP</option></select>
+              <button class="btn btn-danger btn-sm">×</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:11px;color:#8c8c8c;width:24px;">③</span>
+              <select class="form-select" style="width:160px;"><option>国家码</option></select>
+              <select class="form-select" style="width:80px;"><option>=</option></select>
+              <select class="form-select" style="width:180px;"><option>JP（日本）</option></select>
+              <button class="btn btn-danger btn-sm">×</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:11px;color:#8c8c8c;width:24px;">④</span>
+              <select class="form-select" style="width:160px;"><option>交易金额</option></select>
+              <select class="form-select" style="width:80px;"><option>&gt;</option><option>&gt;=</option><option>&lt;</option></select>
+              <input class="form-input" style="width:180px;" value="0" />
+              <button class="btn btn-danger btn-sm">×</button>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:10px;">
+            <button class="btn btn-default btn-sm">+ 添加条件</button>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-default btn-sm">取消</button>
+              <button class="btn btn-primary btn-sm">保存</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== APPENDIX ===== -->
+  <div class="doc-section">
+    <h1>附录：设计决策汇总</h1>
+
+    <h2>核心设计原则</h2>
+    <table class="req-table">
+      <thead><tr><th>原则</th><th>具体实现</th><th>参考来源</th></tr></thead>
+      <tbody>
+        <tr><td>状态变更即流水</td><td>所有余额维度变化（冻结/解冻/结算）均生成新流水，原始流水永不修改</td><td>Worldpay 事件溯源模式</td></tr>
+        <tr><td>多维余额索引</td><td>按（账户ID + 币种 + 状态维度）建立余额索引，O(1)查询</td><td>Stripe/Adyen 架构</td></tr>
+        <tr><td>快照+增量</td><td>日终生成余额快照，报表查询 = 快照 + 增量，兼顾效率与准确</td><td>Worldpay 报表模式</td></tr>
+        <tr><td>价值日期标记</td><td>用日期/状态标记资金性质替代物理隔离，提升灵活性</td><td>Adyen Value Date</td></tr>
+        <tr><td>无负余额原则</td><td>伞形下沉步骤遵循"先增后减"顺序，任意步骤后余额均非负</td><td>本系统设计</td></tr>
+        <tr><td>幂等+原子性</td><td>三层幂等拦截 + 单事务多步骤入账，要么全成功要么全失败</td><td>行业最佳实践</td></tr>
+        <tr><td>职责边界清晰</td><td>账户系统只负责入账记账，验证/路由/授权由支付网关负责</td><td>架构设计原则</td></tr>
+        <tr><td>配置驱动</td><td>入账规则、分润比例、结算周期均可通过配置中心修改，无需发布</td><td>Stripe Capabilities 理念</td></tr>
+      </tbody>
+    </table>
+
+    <h2>待深入设计的模块</h2>
+    <table class="req-table">
+      <thead><tr><th>模块</th><th>描述</th><th>优先级</th></tr></thead>
+      <tbody>
+        <tr><td>DCC 多币种设计</td><td>持卡人付 GBP，商户收 USD，三方货币双重汇率锁定</td><td><span class="tag tag-p1">P1</span></td></tr>
+        <tr><td>多层级分润</td><td>集团→代理→平台→商户复杂资金流，清分服务完整设计</td><td><span class="tag tag-p1">P1</span></td></tr>
+        <tr><td>对账引擎</td><td>自动化对账算法、差异状态机、批量对账任务</td><td><span class="tag tag-p1">P1</span></td></tr>
+        <tr><td>分库分表</td><td>海量流水数据的分片策略、余额预计算优化</td><td><span class="tag tag-p2">P2</span></td></tr>
+        <tr><td>AI代理账户</td><td>委托令牌生命周期管理、代理发起交易的流水标记</td><td><span class="tag tag-p2">P2</span></td></tr>
+        <tr><td>月结报告自动化</td><td>异步队列、分片生成、邮件推送、对账数据导出</td><td><span class="tag tag-p1">P1</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box green" style="margin-top:24px;">
+      <strong>文档说明：</strong>本需求文档基于对 Stripe、Adyen、Revolut、Fiserv、Worldpay 五大支付机构账户系统的深度分析，结合 KPay 日本外卡收单业务场景编制。所有原型均为线框图级别，供产品确认和开发参考。最终实现以开发团队技术选型为准。
+    </div>
+  </div>
+
+</main>
+
+<script>
+// Simple navigation active state
+document.querySelectorAll('.doc-nav a').forEach(link => {
+  link.addEventListener('click', function(e) {
+    document.querySelectorAll('.doc-nav a').forEach(l => l.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+// Toggle for sidebar items
+document.querySelectorAll('.sys-sidebar ul li:not(.group-title)').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.sys-sidebar ul li').forEach(li => li.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
