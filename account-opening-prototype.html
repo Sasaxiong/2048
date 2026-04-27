@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>开户任务管理 - 外卡收单系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif}
+body{background:#f5f7fa;display:flex;height:100vh;overflow:hidden;font-size:14px;color:#333}
+
+/* ─── Sidebar ─── */
+.sidebar{width:220px;background:#222b45;color:#fff;height:100%;overflow-y:auto;flex-shrink:0}
+.sidebar .logo{height:52px;line-height:52px;text-align:center;font-size:15px;background:#192038;font-weight:600}
+.menu-group{padding:8px 16px 3px;font-size:11px;color:#8c96ac;letter-spacing:.5px;text-transform:uppercase}
+.menu-item{padding:9px 16px 9px 28px;cursor:pointer;border-left:3px solid transparent;font-size:13px;transition:.15s}
+.menu-item:hover{background:#2b3655}
+.menu-item.active{background:#1b2540;border-left-color:#409eff;color:#409eff}
+.menu-item.top{padding-left:16px;font-weight:600;color:rgba(255,255,255,.75)}
+
+/* ─── Main ─── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.header{height:50px;background:#fff;border-bottom:1px solid #e4e7ed;padding:0 20px;display:flex;align-items:center;justify-content:space-between}
+.content{flex:1;padding:16px 20px;overflow-y:auto}
+
+/* ─── Cards ─── */
+.card{background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:16px}
+.card-body{padding:16px}
+.page-title{font-size:17px;font-weight:600;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+
+/* ─── Stat Row ─── */
+.stat-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:#fff;border-radius:8px;padding:14px;border:1px solid #f0f0f0;cursor:pointer;transition:.2s}
+.stat-card:hover{border-color:#409eff;box-shadow:0 2px 8px rgba(24,144,255,.15)}
+.stat-card.active{border-color:#409eff;background:#f0f8ff}
+.stat-card .num{font-size:24px;font-weight:700;margin-bottom:4px}
+.stat-card .label{font-size:12px;color:#888}
+.stat-card .trend{font-size:11px;margin-top:3px}
+.c-blue{color:#1890ff}.c-green{color:#52c41a}.c-orange{color:#fa8c16}
+.c-red{color:#ff4d4f}.c-gray{color:#909399}.c-purple{color:#722ed1}
+
+/* ─── Filter ─── */
+.filter{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.fi{padding:6px 10px;border:1px solid #dcdfe6;border-radius:4px;font-size:13px;outline:none}
+.fi:focus{border-color:#409eff}
+.fs{padding:6px 10px;border:1px solid #dcdfe6;border-radius:4px;font-size:13px;background:#fff}
+.filter-btns{margin-left:auto;display:flex;gap:8px}
+
+/* ─── Buttons ─── */
+.btn{padding:5px 14px;border-radius:4px;border:none;cursor:pointer;font-size:13px;transition:.15s;display:inline-flex;align-items:center;gap:4px}
+.btn-primary{background:#409eff;color:#fff}.btn-primary:hover{background:#66b1ff}
+.btn-success{background:#00b42a;color:#fff}.btn-success:hover{background:#23c343}
+.btn-default{background:#fff;border:1px solid #dcdfe6;color:#666}.btn-default:hover{border-color:#409eff;color:#409eff}
+.btn-danger{background:#fff;border:1px solid #f56c6c;color:#f56c6c}.btn-danger:hover{background:#fff1f0}
+.btn-warning{background:#fff;border:1px solid #ff9a2e;color:#ff9a2e}.btn-warning:hover{background:#fff7e6}
+.btn-sm{padding:3px 10px;font-size:12px}
+.btn-xs{padding:2px 7px;font-size:11px}
+.btn-text{color:#409eff;background:none;border:none;cursor:pointer;font-size:12px;padding:2px 4px}
+.btn-text:hover{color:#66b1ff}
+.btn-text-red{color:#f56c6c}.btn-text-orange{color:#ff9a2e}.btn-text-green{color:#52c41a}
+
+/* ─── Table ─── */
+table{width:100%;border-collapse:collapse}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid #f0f0f0;font-size:12.5px;white-space:nowrap}
+th{background:#fafafa;color:#888;font-weight:500;border-bottom:1.5px solid #e8e8e8}
+tr:hover td{background:#f5f9ff}
+
+/* ─── Tags / Status ─── */
+.tag{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;display:inline-block}
+.tag-success{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.tag-fail{background:#fff1f0;color:#cf1322;border:1px solid #ffa39e}
+.tag-pending{background:#fff7e6;color:#d46b08;border:1px solid #ffd591}
+.tag-processing{background:#e6f7ff;color:#0050b3;border:1px solid #91d5ff}
+.tag-skip{background:#f5f5f5;color:#8c8c8c;border:1px solid #d9d9d9}
+.tag-rejected{background:#f9f0ff;color:#531dab;border:1px solid #d3adf7}
+.tag-perm-fail{background:#fff1f0;color:#820014;border:1px solid #ff4d4f}
+
+.badge-mvp{background:#e6f7ff;color:#0050b3;font-size:10px;padding:1px 6px;border-radius:3px;margin-left:4px;font-weight:600}
+.badge-p2{background:#f5f5f5;color:#8c8c8c;font-size:10px;padding:1px 6px;border-radius:3px;margin-left:4px}
+
+/* ─── Switch ─── */
+.switch{position:relative;display:inline-block;width:36px;height:18px}
+.switch input{opacity:0;width:0;height:0}
+.sw-track{position:absolute;inset:0;background:#ccc;border-radius:9px;cursor:pointer;transition:.2s}
+.sw-track:before{content:'';position:absolute;height:14px;width:14px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s}
+input:checked+.sw-track{background:#00b42a}
+input:checked+.sw-track:before{transform:translateX(18px)}
+
+/* ─── Modal ─── */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:9999}
+.modal.show{display:flex}
+.modal-dialog{background:#fff;border-radius:8px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.modal-header{padding:14px 20px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.modal-header h3{font-size:15px;font-weight:600}
+.x-btn{font-size:20px;color:#999;cursor:pointer;background:none;border:none;line-height:1}
+.x-btn:hover{color:#f56c6c}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-footer{padding:13px 20px;border-top:1px solid #f0f0f0;display:flex;gap:8px;flex-shrink:0}
+.modal-footer.right{justify-content:flex-end}
+.modal-footer.center{justify-content:center}
+.modal-footer.between{justify-content:space-between}
+
+/* ─── Form ─── */
+.form-item{display:flex;align-items:flex-start;margin-bottom:14px}
+.form-label{width:120px;text-align:right;padding-right:10px;line-height:32px;font-size:13px;color:#555;flex-shrink:0}
+.form-label .req{color:#f56c6c}
+.form-content{flex:1}
+.form-input,.form-select{width:100%;padding:6px 10px;border:1px solid #dcdfe6;border-radius:4px;font-size:13px}
+.form-textarea{width:100%;padding:6px 10px;border:1px solid #dcdfe6;border-radius:4px;font-size:13px;resize:vertical;min-height:64px;font-family:inherit}
+.form-tip{font-size:11px;color:#909399;margin-top:3px}
+.form-tip.blue{color:#409eff}
+
+/* ─── Alert boxes ─── */
+.alert{padding:10px 14px;border-radius:6px;font-size:12px;line-height:1.8;margin-bottom:12px}
+.alert-info{background:#e6f7ff;border-left:3px solid #409eff;color:#003a8c}
+.alert-warn{background:#fff7e6;border-left:3px solid #ff9a2e;color:#7c3a00}
+.alert-danger{background:#fff1f0;border-left:3px solid #ff4d4f;color:#820014}
+.alert-success{background:#f6ffed;border-left:3px solid #52c41a;color:#135200}
+
+/* ─── Timeline ─── */
+.tl{border-left:2px solid #e4e7ed;padding-left:16px;margin-left:8px}
+.tl-item{position:relative;margin-bottom:12px}
+.tl-item::before{content:'';position:absolute;left:-21px;top:5px;width:8px;height:8px;border-radius:50%;background:#909399}
+.tl-item.ok::before{background:#52c41a}
+.tl-item.fail::before{background:#ff4d4f}
+.tl-item.running::before{background:#409eff}
+.tl-time{font-size:11px;color:#999;margin-bottom:2px}
+.tl-text{font-size:12px;color:#333}
+
+/* ─── Tabs ─── */
+.tabs{display:flex;border-bottom:2px solid #f0f0f0;margin-bottom:14px}
+.tab-btn{padding:7px 18px;border:none;background:none;font-size:13px;color:#888;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:500}
+.tab-btn.active{color:#409eff;border-bottom-color:#409eff}
+
+/* ─── Detail panels ─── */
+.detail-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.detail-item{width:calc(50% - 4px)}
+.detail-item.full{width:100%}
+.d-label{font-size:11px;color:#909399;margin-bottom:2px}
+.d-value{font-size:13px;color:#262626}
+
+/* ─── Error step table ─── */
+.step-table{width:100%;border-collapse:collapse;font-size:12px}
+.step-table th{background:#fafafa;padding:7px 10px;text-align:left;font-weight:500;color:#666;border-bottom:1.5px solid #e8e8e8}
+.step-table td{padding:7px 10px;border-bottom:1px solid #f5f5f5}
+.step-table tr:hover td{background:#f5f9ff}
+
+/* ─── Pagination ─── */
+.pagination{display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;color:#888;font-size:12px}
+.pages{display:flex;gap:4px}
+.pages span{padding:3px 9px;border:1px solid #e4e7ed;border-radius:4px;cursor:pointer;font-size:12px}
+.pages span.active{background:#409eff;color:#fff;border-color:#409eff}
+
+/* ─── MVP scope box ─── */
+.scope-box{border-radius:6px;padding:12px 16px;margin-bottom:14px;font-size:12px}
+.scope-mvp{background:#e6f7ff;border:1px solid #91d5ff}
+.scope-p2{background:#f5f5f5;border:1px solid #d9d9d9}
+.scope-box h4{font-size:13px;font-weight:600;margin-bottom:8px}
+.scope-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:5px}
+.scope-icon{font-size:13px;flex-shrink:0;margin-top:1px}
+
+/* ─── Progress bar ─── */
+.progress-bar{height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;border-radius:3px;transition:.3s}
+
+/* ─── Code block ─── */
+.code{background:#1e2027;color:#abb2bf;border-radius:6px;padding:12px 14px;font-family:monospace;font-size:11.5px;line-height:1.8;overflow-x:auto;margin:8px 0}
+.code .kw{color:#c678dd}.code .str{color:#98c379}.code .cm{color:#5c6370}
+
+/* view switching */
+.page-view{display:none}
+.page-view.active{display:block}
+
+/* retry count badge */
+.retry-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;background:#ff4d4f;color:#fff;border-radius:9px;font-size:10px;padding:0 5px}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar">
+  <div class="logo">外卡收单系统</div>
+  <div class="menu-group">账户管理</div>
+  <div class="menu-item top active" onclick="showPage('p-task')">开户任务管理</div>
+  <div class="menu-item" onclick="showPage('p-task')">开户任务列表</div>
+  <div class="menu-item" onclick="showPage('p-detail-demo')">开户任务详情</div>
+  <div class="menu-group">实体与账户</div>
+  <div class="menu-item top" onclick="showPage('p-entity')">实体账户管理</div>
+  <div class="menu-item top" onclick="showPage('p-status')">账户状态总览</div>
+  <div class="menu-group">配置中心</div>
+  <div class="menu-item top" onclick="showPage('p-config')">开户规则配置</div>
+  <div class="menu-group">系统设计参考</div>
+  <div class="menu-item top" onclick="showPage('p-mvp')">MVP范围分析</div>
+  <div class="menu-item top" onclick="showPage('p-arch')">API vs 事件驱动</div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+  <div class="header">
+    <span style="font-size:13px;color:#888">当前页面：<span id="pageLabel" style="color:#409eff">开户任务管理</span></span>
+    <span style="font-size:13px;color:#666">管理员 Admin</span>
+  </div>
+  <div class="content">
+
+<!-- ════════════════════════════════════════════════════════
+     PAGE 1: 开户任务管理
+════════════════════════════════════════════════════════ -->
+<div class="page-view active" id="p-task">
+  <div class="card"><div class="card-body">
+    <div class="page-title">开户任务管理
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-default btn-sm" onclick="showModal('m-export')">导出</button>
+        <button class="btn btn-primary btn-sm" onclick="showModal('m-manual-open')">手动触发开户</button>
+      </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="stat-row">
+      <div class="stat-card" onclick="filterByStatus('all')" id="sc-all">
+        <div class="num c-blue">1,284</div>
+        <div class="label">总任务数</div>
+        <div class="trend" style="color:#52c41a">↑ 今日新增 38</div>
+      </div>
+      <div class="stat-card" onclick="filterByStatus('success')" id="sc-success">
+        <div class="num c-green">1,241</div>
+        <div class="label">开户成功</div>
+        <div class="trend c-gray">成功率 96.7%</div>
+      </div>
+      <div class="stat-card" onclick="filterByStatus('processing')" id="sc-processing">
+        <div class="num c-blue">8</div>
+        <div class="label">处理中</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:60%;background:#409eff"></div></div>
+      </div>
+      <div class="stat-card" onclick="filterByStatus('failed')" id="sc-failed">
+        <div class="num c-red">23</div>
+        <div class="label">失败（可重试）</div>
+        <div class="trend c-red">⚠ 需处理</div>
+      </div>
+      <div class="stat-card" onclick="filterByStatus('rejected')" id="sc-rejected">
+        <div class="num c-purple">9</div>
+        <div class="label">参数错误拒绝</div>
+        <div class="trend c-gray">调用方修正</div>
+      </div>
+      <div class="stat-card" onclick="filterByStatus('skip')" id="sc-skip">
+        <div class="num c-gray">3</div>
+        <div class="label">已跳过</div>
+        <div class="trend c-gray">人工标记</div>
+      </div>
+    </div>
+
+    <!-- 过滤器 -->
+    <div class="filter">
+      <input class="fi" style="width:200px" placeholder="搜索实体ID / 商户号">
+      <select class="fs" style="width:130px">
+        <option>全部实体类型</option>
+        <option>集团</option><option>母公司</option><option>子公司</option>
+        <option>商户</option><option>门店</option>
+      </select>
+      <select class="fs" style="width:130px" id="statusFilter">
+        <option value="all">全部状态</option>
+        <option value="success">成功</option>
+        <option value="processing">处理中</option>
+        <option value="failed">失败（可重试）</option>
+        <option value="rejected">参数错误拒绝</option>
+        <option value="perm_fail">永久失败</option>
+        <option value="skip">已跳过</option>
+      </select>
+      <select class="fs" style="width:120px">
+        <option>全部失败类型</option>
+        <option>参数错误（400）</option>
+        <option>业务规则（422）</option>
+        <option>内部异常（500）</option>
+        <option>网络超时</option>
+      </select>
+      <input type="date" class="fi" style="width:140px" value="2026-04-26">
+      <div class="filter-btns">
+        <button class="btn btn-primary">查询</button>
+        <button class="btn btn-default">重置</button>
+      </div>
+    </div>
+
+    <!-- 批量操作 -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px;color:#888">
+      <input type="checkbox" id="chk-all" onchange="toggleAll(this)">
+      <label for="chk-all">全选</label>
+      <span style="margin:0 4px">|</span>
+      <button class="btn btn-warning btn-xs" onclick="showModal('m-batch-retry')">批量重试</button>
+      <button class="btn btn-default btn-xs" onclick="showModal('m-batch-skip')">批量跳过</button>
+      <span style="margin-left:12px" id="selectedCount"></span>
+    </div>
+
+    <!-- 主表格 -->
+    <table id="taskTable">
+      <thead><tr>
+        <th style="width:28px"><input type="checkbox"></th>
+        <th>任务ID</th><th>实体ID</th><th>实体类型</th><th>父级实体ID</th>
+        <th>请求来源</th><th>幂等键</th><th>创建时间</th>
+        <th>状态</th><th>失败类型</th><th>重试次数</th><th>最后执行时间</th><th>操作</th>
+      </tr></thead>
+      <tbody>
+        <!-- 成功 -->
+        <tr>
+          <td><input type="checkbox"></td>
+          <td class="mono">OPN-20260426-0001</td>
+          <td>MCH_SBX_001</td><td><span style="background:#fff7e6;color:#d46b08;padding:1px 6px;border-radius:3px;font-size:11px">商户</span></td>
+          <td>ENT_GRP_A</td><td>API调用</td>
+          <td class="mono">idem-abc-001</td><td>04-26 09:00:01</td>
+          <td><span class="tag tag-success">开户成功</span></td>
+          <td>—</td><td>0</td><td>04-26 09:00:02</td>
+          <td><button class="btn-text" onclick="showModal('m-detail-success')">详情</button></td>
+        </tr>
+        <!-- 处理中 -->
+        <tr>
+          <td><input type="checkbox"></td>
+          <td class="mono">OPN-20260426-0002</td>
+          <td>ENT_GRP_B</td><td><span style="background:#e6f7ff;color:#0050b3;padding:1px 6px;border-radius:3px;font-size:11px">集团</span></td>
+          <td>KPAY</td><td>API调用</td>
+          <td class="mono">idem-abc-002</td><td>04-26 09:01:00</td>
+          <td><span class="tag tag-processing">处理中</span></td>
+          <td>—</td><td>0</td><td>04-26 09:01:00</td>
+          <td><button class="btn-text" onclick="showModal('m-detail-processing')">详情</button></td>
+        </tr>
+        <!-- 内部失败（可重试） -->
+        <tr style="background:#fff9f9">
+          <td><input type="checkbox"></td>
+          <td class="mono">OPN-20260426-0003</td>
+          <td>MCH_MCD_005</td><td><span style="background:#fff7e6;color:#d46b08;padding:1px 6px;border-radius:3px;font-size:11px">商户</span></td>
+          <td>ENT_PARENT_C</td><td>API调用</td>
+          <td class="mono">idem-abc-003</td><td>04-26 09:02:00</td>
+          <td><span class="tag tag-fail">执行失败</span></td>
+          <td><span style="color:#ff4d4f;font-size:11px">内部异常(500)</span></td>
+          <td><span class="retry-badge">2</span></td><td>04-26 09:02:20</td>
+          <td>
+            <button class="btn-text" onclick="showModal('m-detail-fail500')">详情</button>
+            <button class="btn-text btn-text-orange" onclick="showModal('m-retry')">重试</button>
+            <button class="btn-text btn-text-red" onclick="showModal('m-skip')">跳过</button>
+          </td>
+        </tr>
+        <!-- 参数错误（拒绝） -->
+        <tr>
+          <td><input type="checkbox"></td>
+          <td class="mono">OPN-20260426-0004</td>
+          <td>MCH_XYZ_009</td><td><span style="background:#fff7e6;color:#d46b08;padding:1px 6px;border-radius:3px;font-size:11px">商户</span></td>
+          <td>UNKNOWN_ENT</td><td>API调用</td>
+          <td class="mono">idem-abc-004</td><td>04-26 09:03:00</td>
+          <td><span class="tag tag-rejected">参数错误拒绝</span></td>
+          <td><span style="color:#531dab;font-size:11px">父级不存在(422)</span></td>
+          <td>0</td><td>04-26 09:03:01</td>
+          <td>
+            <button class="btn-text" onclick="showModal('m-detail-fail422')">详情</button>
+            <span style="font-size:11px;color:#888">调用方修正后重调</span>
+          </td>
+        </tr>
+        <!-- 业务规则失败 -->
+        <tr>
+          <td><input type="checkbox"></td>
+          <td class="mono">OPN-20260426-0005</td>
+          <td>STR_ABC_011</td><td><span style="background:#f6ffed;color:#389e0d;padding:1px 6px;border-radius:3px;font-size:11px">门店</span></td>
+          <td>MCH_SBX_001</td><td>API调用</td>
+          <td class="mono">idem-abc-005</td><td>04-26 09:04:00</td>
+          <td><span class="tag tag-rejected">配置未就绪</span></td>
+          <td><span style="color:#531dab;font-size:11px">实体类型未配置(422)</span></td>
+          <td>0</td><td>04-26 09:04:01</td>
+          <td>
+            <button class="btn-text" onclick="showModal('m-detail-fail422b')">详情</button>
+            <button class="btn-text btn-text-orange" onclick="showModal('m-retry-after-config')">运营配置后重试</button>
+          </td>
+        </tr>
+        <!-- 永久失败 -->
+        <tr style="background:#fff9f9">
+          <td><input type="checkbox"></td>
+          <td class="mono">OPN-20260426-0006</td>
+          <td>MCH_OLD_003</td><td><span style="background:#fff7e6;color:#d46b08;padding:1px 6px;border-radius:3px;font-size:11px">商户</span></td>
+          <td>ENT_GRP_A</td><td>API调用</td>
+          <td class="mono">idem-abc-006</td><td>04-26 08:00:00</td>
+          <td><span class="tag tag-perm-fail">永久失败</span></td>
+          <td><span style="color:#820014;font-size:11px">内部异常(500) ×5次</span></td>
+          <td><span class="retry-badge" style="background:#820014">5</span></td><td>04-26 08:45:00</td>
+          <td>
+            <button class="btn-text" onclick="showModal('m-detail-permfail')">详情</button>
+            <button class="btn-text btn-text-orange" onclick="showModal('m-retry-perm')">强制重试</button>
+            <button class="btn-text btn-text-red" onclick="showModal('m-skip')">跳过</button>
+          </td>
+        </tr>
+        <!-- 已跳过 -->
+        <tr>
+          <td><input type="checkbox"></td>
+          <td class="mono">OPN-20260425-0099</td>
+          <td>MCH_DEL_007</td><td><span style="background:#fff7e6;color:#d46b08;padding:1px 6px;border-radius:3px;font-size:11px">商户</span></td>
+          <td>ENT_GRP_A</td><td>API调用</td>
+          <td class="mono">idem-abc-099</td><td>04-25 16:00:00</td>
+          <td><span class="tag tag-skip">已跳过</span></td>
+          <td><span style="color:#888;font-size:11px">人工标记</span></td>
+          <td>1</td><td>04-25 16:30:00</td>
+          <td>
+            <button class="btn-text" onclick="showModal('m-detail-skip')">详情</button>
+          </td>
+        </tr>
+        <!-- parent ID变更 重开户 -->
+        <tr style="background:#fffbf0">
+          <td><input type="checkbox"></td>
+          <td class="mono">OPN-20260426-0010</td>
+          <td>STR_LKS_022</td><td><span style="background:#f6ffed;color:#389e0d;padding:1px 6px;border-radius:3px;font-size:11px">门店</span></td>
+          <td>MCH_SBX_001 <span style="color:#888;font-size:10px">（变更）</span></td>
+          <td>API调用</td>
+          <td class="mono">idem-abc-010</td><td>04-26 10:00:00</td>
+          <td><span class="tag tag-success">更新成功</span></td>
+          <td>—</td><td>0</td><td>04-26 10:00:01</td>
+          <td>
+            <button class="btn-text" onclick="showModal('m-detail-reparent')">详情</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <div>每页显示：<select class="fs" style="width:60px"><option>10</option><option>20</option><option>50</option></select> 条</div>
+      <div>共 1,284 条</div>
+      <div class="pages"><span>上页</span><span class="active">1</span><span>2</span><span>3</span><span>下页</span></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     PAGE 2: 账户状态总览
+════════════════════════════════════════════════════════ -->
+<div class="page-view" id="p-status">
+  <div class="card"><div class="card-body">
+    <div class="page-title">账户状态总览</div>
+
+    <!-- 按实体类型统计 -->
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:#595959">按实体类型统计</div>
+    <table style="margin-bottom:20px">
+      <thead><tr>
+        <th>实体类型</th><th>总账户数</th><th>已激活</th><th>未激活（已创建）</th><th>冻结</th><th>注销</th><th>开户失败（待处理）</th>
+      </tr></thead>
+      <tbody>
+        <tr><td><span style="background:#e6f7ff;color:#0050b3;padding:1px 7px;border-radius:3px;font-size:11px">集团</span></td>
+          <td>12</td><td><span class="tag tag-success">10</span></td><td><span class="tag tag-pending">1</span></td>
+          <td>0</td><td>1</td><td><span class="tag tag-fail">0</span></td></tr>
+        <tr><td><span style="background:#f9f0ff;color:#531dab;padding:1px 7px;border-radius:3px;font-size:11px">母公司</span></td>
+          <td>28</td><td><span class="tag tag-success">25</span></td><td><span class="tag tag-pending">2</span></td>
+          <td>1</td><td>0</td><td><span class="tag tag-fail">0</span></td></tr>
+        <tr><td><span style="background:#fff7e6;color:#d46b08;padding:1px 7px;border-radius:3px;font-size:11px">商户</span></td>
+          <td>1,156</td><td><span class="tag tag-success">1,120</span></td><td><span class="tag tag-pending">14</span></td>
+          <td>5</td><td>3</td><td><span class="tag tag-fail" style="cursor:pointer" onclick="showPage('p-task')">14 ⟶</span></td></tr>
+        <tr><td><span style="background:#f6ffed;color:#389e0d;padding:1px 7px;border-radius:3px;font-size:11px">门店</span></td>
+          <td>4,821</td><td><span class="tag tag-success">4,780</span></td><td><span class="tag tag-pending">30</span></td>
+          <td>8</td><td>3</td><td><span class="tag tag-fail" style="cursor:pointer" onclick="showPage('p-task')">9 ⟶</span></td></tr>
+      </tbody>
+    </table>
+
+    <!-- 按账户状态说明 -->
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:#595959">账户生命周期状态说明</div>
+    <table>
+      <thead><tr>
+        <th>账户状态</th><th>说明</th><th>允许入账</th><th>允许出款</th><th>下一步动作</th>
+      </tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-processing">已创建，待激活</span></td>
+          <td>开户成功，但激活条件（KYC等）尚未满足</td>
+          <td>❌</td><td>❌</td><td>等待激活条件满足，系统自动激活</td></tr>
+        <tr><td><span class="tag tag-success">已激活</span></td>
+          <td>账户正常运营状态，可全量操作</td>
+          <td>✅</td><td>✅</td><td>—</td></tr>
+        <tr><td><span class="tag" style="background:#fff1f0;color:#cf1322;border:1px solid #ffa39e">冻结</span></td>
+          <td>风控或人工冻结，资金只进不出</td>
+          <td>✅</td><td>❌</td><td>审核解冻</td></tr>
+        <tr><td><span class="tag tag-skip">注销</span></td>
+          <td>终态，只读不可写</td>
+          <td>❌</td><td>❌</td><td>—</td></tr>
+        <tr><td><span class="tag tag-fail">开户失败</span></td>
+          <td>开户任务未成功，账户未建立</td>
+          <td>❌</td><td>❌</td><td>运营重试或标记跳过</td></tr>
+      </tbody>
+    </table>
+  </div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     PAGE 3: 开户规则配置（精简版）
+════════════════════════════════════════════════════════ -->
+<div class="page-view" id="p-config">
+  <div class="card"><div class="card-body">
+    <div class="page-title">开户规则配置
+      <button class="btn btn-success btn-sm" onclick="showModal('m-rule-add')">+ 新增规则</button>
+    </div>
+    <div class="alert alert-info">开户规则定义：收到哪类实体的开户请求时，自动为其创建哪些子账户和钱包。若配置了父级覆盖规则，收到新的parent_id时将更新层级关系。</div>
+    <table>
+      <thead><tr>
+        <th>规则名称</th><th>实体类型</th><th>触发方式</th><th>父级变更处理</th>
+        <th>创建子账户</th><th>创建钱包</th><th>状态</th><th>操作</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td>商户开户规则</td>
+          <td><span style="background:#fff7e6;color:#d46b08;padding:1px 7px;border-radius:3px;font-size:11px">商户</span></td>
+          <td>API调用（同步）</td>
+          <td><span class="tag tag-processing" style="font-size:11px">新parent覆盖旧parent</span></td>
+          <td>交易户、待结算户、可提现户</td><td>MCH_TRADE、MCH_PENDING</td>
+          <td><label class="switch"><input type="checkbox" checked><span class="sw-track"></span></label></td>
+          <td><button class="btn-text" onclick="showModal('m-rule-detail')">详情</button><button class="btn-text" onclick="showModal('m-rule-edit')">编辑</button></td>
+        </tr>
+        <tr>
+          <td>门店开户规则</td>
+          <td><span style="background:#f6ffed;color:#389e0d;padding:1px 7px;border-radius:3px;font-size:11px">门店</span></td>
+          <td>API调用（同步）</td>
+          <td><span class="tag tag-processing" style="font-size:11px">新parent覆盖旧parent</span></td>
+          <td>STORE交易户</td><td>STORE_TRADE</td>
+          <td><label class="switch"><input type="checkbox" checked><span class="sw-track"></span></label></td>
+          <td><button class="btn-text">详情</button><button class="btn-text">编辑</button></td>
+        </tr>
+        <tr>
+          <td>集团开户规则</td>
+          <td><span style="background:#e6f7ff;color:#0050b3;padding:1px 7px;border-radius:3px;font-size:11px">集团</span></td>
+          <td>API调用（同步）</td>
+          <td><span class="tag tag-processing" style="font-size:11px">新parent覆盖旧parent</span></td>
+          <td>集团分润户</td><td>GROUP_PROFIT</td>
+          <td><label class="switch"><input type="checkbox" checked><span class="sw-track"></span></label></td>
+          <td><button class="btn-text">详情</button><button class="btn-text">编辑</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     PAGE 4: MVP 范围分析
+════════════════════════════════════════════════════════ -->
+<div class="page-view" id="p-mvp">
+  <div class="card"><div class="card-body">
+    <div class="page-title">MVP 范围分析（2个月 / 7开发 / 6测试）</div>
+
+    <div class="scope-box scope-mvp">
+      <h4 style="color:#0050b3">✅ MVP 必须做（保障基本业务正确性）</h4>
+
+      <div style="font-size:12px;font-weight:600;color:#595959;margin:10px 0 6px">开户核心流程</div>
+      <div class="scope-item"><span class="scope-icon">✅</span><div><strong>同步API开户接口</strong>（POST /accounts/open）<span class="badge-mvp">MVP</span><br><span style="color:#888">包含：参数校验、幂等键判断、创建主账户+子账户+钱包</span></div></div>
+      <div class="scope-item"><span class="scope-icon">✅</span><div><strong>幂等键机制</strong><span class="badge-mvp">MVP</span><br><span style="color:#888">防止网络超时重试导致重复创建账户</span></div></div>
+      <div class="scope-item"><span class="scope-icon">✅</span><div><strong>开户任务流水表</strong>（每次调用记录一条）<span class="badge-mvp">MVP</span><br><span style="color:#888">包含状态、失败原因、重试次数，是运营操作的基础</span></div></div>
+      <div class="scope-item"><span class="scope-icon">✅</span><div><strong>内部自动重试</strong>（500类失败，最多3次，指数退避）<span class="badge-mvp">MVP</span></div></div>
+      <div class="scope-item"><span class="scope-icon">✅</span><div><strong>失败分类</strong>（400/422/500分开记录，错误原因字段）<span class="badge-mvp">MVP</span></div></div>
+      <div class="scope-item"><span class="scope-icon">✅</span><div><strong>父级更新</strong>（新parent覆盖旧parent，原子操作）<span class="badge-mvp">MVP</span><br><span style="color:#888">收到新parent_id时更新账户层级关系</span></div></div>
+
+      <div style="font-size:12px;font-weight:600;color:#595959;margin:10px 0 6px">运营管理界面</div>
+      <div class="scope-item"><span class="scope-icon">✅</span><div><strong>开户任务列表</strong>（本页面）<span class="badge-mvp">MVP</span><br><span style="color:#888">含状态过滤、实体类型过滤、时间范围</span></div></div>
+      <div class="scope-item"><span class="scope-icon">✅</span><div><strong>开户任务详情</strong>（执行步骤、错误原因）<span class="badge-mvp">MVP</span></div></div>
+      <div class="scope-item"><span class="scope-icon">✅</span><div><strong>手动重试按钮</strong><span class="badge-mvp">MVP</span></div></div>
+      <div class="scope-item"><span class="scope-icon">✅</span><div><strong>标记跳过按钮</strong>（必填跳过原因）<span class="badge-mvp">MVP</span></div></div>
+      <div class="scope-item"><span class="scope-icon">✅</span><div><strong>统计卡片</strong>（成功/失败/处理中数量）<span class="badge-mvp">MVP</span></div></div>
+
+      <div style="font-size:12px;font-weight:600;color:#595959;margin:10px 0 6px">配置</div>
+      <div class="scope-item"><span class="scope-icon">✅</span><div><strong>开户规则配置</strong>（预配置10种实体类型的规则，一次性初始化）<span class="badge-mvp">MVP</span><br><span style="color:#888">集团/母公司/子公司...八级子公司/商户/门店，管理员脚本初始化即可</span></div></div>
+    </div>
+
+    <div class="scope-box scope-p2" style="margin-top:14px">
+      <h4 style="color:#595959">⬜ Phase 2（MVP后迭代，不影响MVP上线）</h4>
+
+      <div class="scope-item"><span class="scope-icon" style="color:#8c8c8c">⬜</span><div><strong>事件驱动架构</strong>（MQ+事件消费+异步开户）<span class="badge-p2">P2</span><br><span style="color:#888">MVP用同步API完全可以，事件驱动是长期架构演进方向</span></div></div>
+      <div class="scope-item"><span class="scope-icon" style="color:#8c8c8c">⬜</span><div><strong>事件流水表 + 执行流水表</strong>（事件驱动才需要）<span class="badge-p2">P2</span></div></div>
+      <div class="scope-item"><span class="scope-icon" style="color:#8c8c8c">⬜</span><div><strong>后台定时扫描自动重试</strong>（每30分钟扫FAILED）<span class="badge-p2">P2</span><br><span style="color:#888">MVP靠运营手动重试，P2再做自动调度</span></div></div>
+      <div class="scope-item"><span class="scope-icon" style="color:#8c8c8c">⬜</span><div><strong>失败告警通知</strong>（钉钉/邮件）<span class="badge-p2">P2</span></div></div>
+      <div class="scope-item"><span class="scope-icon" style="color:#8c8c8c">⬜</span><div><strong>层级遍历分润引擎</strong><span class="badge-p2">P2</span><br><span style="color:#888">MVP用固定实体类型+步骤跳过条件即可</span></div></div>
+      <div class="scope-item"><span class="scope-icon" style="color:#8c8c8c">⬜</span><div><strong>配置中心完整UI</strong>（开户规则的增删改查界面）<span class="badge-p2">P2</span><br><span style="color:#888">MVP用数据库脚本初始化配置即可</span></div></div>
+      <div class="scope-item"><span class="scope-icon" style="color:#8c8c8c">⬜</span><div><strong>批量重试调度</strong>（可选择多条失败任务批量处理）<span class="badge-p2">P2</span></div></div>
+    </div>
+
+    <!-- 工期估算 -->
+    <div style="font-size:13px;font-weight:600;margin:16px 0 10px;color:#262626">MVP工期估算（7开发）</div>
+    <table>
+      <thead><tr><th>模块</th><th>涉及开户功能</th><th>人天估算</th><th>优先级</th></tr></thead>
+      <tbody>
+        <tr><td>开户API接口</td><td>接口设计+参数校验+幂等+主账户创建</td><td>5天</td><td><span class="tag tag-fail">最高</span></td></tr>
+        <tr><td>子账户+钱包创建</td><td>按规则创建多个子账户和钱包</td><td>4天</td><td><span class="tag tag-fail">最高</span></td></tr>
+        <tr><td>父级更新逻辑</td><td>原子更新parent_id和entity_type</td><td>3天</td><td><span class="tag tag-pending">高</span></td></tr>
+        <tr><td>失败处理+重试</td><td>自动重试3次、写任务流水、失败分类</td><td>4天</td><td><span class="tag tag-pending">高</span></td></tr>
+        <tr><td>开户任务管理页</td><td>列表+详情+重试+跳过</td><td>4天</td><td><span class="tag tag-pending">高</span></td></tr>
+        <tr><td>初始化配置</td><td>10种实体类型规则脚本</td><td>1天</td><td><span class="tag tag-success">中</span></td></tr>
+        <tr><td><strong>合计</strong></td><td></td><td><strong>21天（约3-4周）</strong></td><td>含联调+测试</td></tr>
+      </tbody>
+    </table>
+  </div></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     PAGE 5: API vs 事件驱动 对比
+════════════════════════════════════════════════════════ -->
+<div class="page-view" id="p-arch">
+  <div class="card"><div class="card-body">
+    <div class="page-title">API同步调用 vs 事件驱动：架构选型分析</div>
+
+    <div class="alert alert-info">
+      <strong>结论先行：</strong>MVP阶段选同步API调用。事件驱动是正确的长期方向，在账户系统稳定后作为Phase 2演进。
+    </div>
+
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:#262626">详细对比</div>
+    <table style="margin-bottom:16px">
+      <thead><tr><th>维度</th><th>同步API调用（MVP推荐）</th><th>事件驱动（Phase 2）</th></tr></thead>
+      <tbody>
+        <tr><td><strong>开发成本</strong></td>
+          <td><span style="color:#52c41a">低</span>：一个接口+幂等键+失败流水表，3-5天</td>
+          <td><span style="color:#ff4d4f">高</span>：MQ接入+事件消费+事件流水+执行流水+规则引擎，3-4周</td></tr>
+        <tr><td><strong>parent变更处理</strong></td>
+          <td><span style="color:#52c41a">简单</span>：调用方传新parent，我方直接更新即可</td>
+          <td><span style="color:#ff9a2e">复杂</span>：需配置"若有新parent则覆盖"规则，规则引擎额外工作量</td></tr>
+        <tr><td><strong>开户延迟</strong></td>
+          <td><span style="color:#52c41a">低</span>：同步返回，200ms~1s</td>
+          <td><span style="color:#ff9a2e">较高</span>：事件入队+消费延迟，可能几秒~几分钟</td></tr>
+        <tr><td><strong>调用方体验</strong></td>
+          <td>需要等结果，需要处理失败逻辑</td>
+          <td><span style="color:#52c41a">好</span>：发事件后就可以走，不需要等待</td></tr>
+        <tr><td><strong>失败可见性</strong></td>
+          <td>需自己实现失败任务流水表</td>
+          <td><span style="color:#52c41a">天然</span>：事件流水表+执行流水表提供完整可见性</td></tr>
+        <tr><td><strong>重试可靠性</strong></td>
+          <td>需自己实现：立即重试+手动重试</td>
+          <td><span style="color:#52c41a">强</span>：MQ自带重试+死信队列机制</td></tr>
+        <tr><td><strong>系统解耦</strong></td>
+          <td>耦合：调用方等待我方响应</td>
+          <td><span style="color:#52c41a">解耦</span>：双方完全独立，互不阻塞</td></tr>
+        <tr><td><strong>MVP 2个月可行性</strong></td>
+          <td><span style="background:#f6ffed;color:#389e0d;padding:2px 8px;border-radius:4px;font-size:12px">✅ 完全可行</span></td>
+          <td><span style="background:#fff1f0;color:#820014;padding:2px 8px;border-radius:4px;font-size:12px">❌ 时间不够</span></td></tr>
+      </tbody>
+    </table>
+
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:#262626">MVP实现：同步API + 最小化失败处理</div>
+    <div class="code">
+<span class="cm">// MVP 开户API（同步）</span>
+POST /api/v1/accounts/open
+Headers: Idempotency-Key: {唯一键}
+
+Request:
+{
+  <span class="str">"entity_id"</span>: <span class="str">"MCH_SBX_001"</span>,
+  <span class="str">"entity_type"</span>: <span class="str">"MERCHANT"</span>,
+  <span class="str">"parent_entity_id"</span>: <span class="str">"ENT_GRP_A"</span>   <span class="cm">// 若已有账户且parent不同，则覆盖</span>
+}
+
+Response 200（成功）: { <span class="str">"account_id"</span>: <span class="str">"ACC_MCH_001"</span>, <span class="str">"status"</span>: <span class="str">"CREATED"</span> }
+Response 200（幂等命中）: { <span class="str">"account_id"</span>: <span class="str">"ACC_MCH_001"</span>, <span class="str">"status"</span>: <span class="str">"ALREADY_EXISTS"</span> }
+Response 400（参数错误）: { <span class="str">"code"</span>: <span class="str">"INVALID_PARAMS"</span>, <span class="str">"message"</span>: <span class="str">"entity_type 不合法"</span> }
+Response 422（业务规则）: { <span class="str">"code"</span>: <span class="str">"PARENT_NOT_FOUND"</span>, <span class="str">"message"</span>: <span class="str">"父级账户不存在"</span> }
+Response 500（内部错误）: { <span class="str">"code"</span>: <span class="str">"INTERNAL_ERROR"</span>, <span class="str">"task_id"</span>: <span class="str">"OPN-xxx"</span> }
+<span class="cm">// 500时：我方已记录开户任务，调用方可直接重试（幂等安全）</span>
+    </div>
+  </div></div>
+</div>
+
+<!-- Placeholder pages -->
+<div class="page-view" id="p-entity"><div class="card"><div class="card-body">
+  <div class="page-title">实体账户管理</div>
+  <p style="color:#888;text-align:center;padding:40px">参见账户系统主原型</p>
+</div></div></div>
+<div class="page-view" id="p-detail-demo"><div class="card"><div class="card-body">
+  <div class="page-title">开户任务详情（示例）</div>
+  <p style="color:#888;text-align:center;padding:20px">点击任务列表中的"详情"按钮查看弹窗</p>
+</div></div></div>
+
+<!-- ════════════════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════════════════ -->
+
+<!-- 开户成功详情 -->
+<div class="modal" id="m-detail-success">
+  <div class="modal-dialog" style="width:640px">
+    <div class="modal-header"><h3>开户任务详情 — 成功</h3><button class="x-btn" onclick="hideModal('m-detail-success')">×</button></div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><div class="d-label">任务ID</div><div class="d-value" style="font-family:monospace">OPN-20260426-0001</div></div>
+        <div class="detail-item"><div class="d-label">任务状态</div><div class="d-value"><span class="tag tag-success">开户成功</span></div></div>
+        <div class="detail-item"><div class="d-label">实体ID</div><div class="d-value">MCH_SBX_001</div></div>
+        <div class="detail-item"><div class="d-label">实体类型</div><div class="d-value">商户（MERCHANT）</div></div>
+        <div class="detail-item"><div class="d-label">父级实体ID</div><div class="d-value">ENT_GRP_A</div></div>
+        <div class="detail-item"><div class="d-label">幂等键</div><div class="d-value" style="font-family:monospace;font-size:11px">idem-abc-001</div></div>
+        <div class="detail-item"><div class="d-label">创建时间</div><div class="d-value">2026-04-26 09:00:01</div></div>
+        <div class="detail-item"><div class="d-label">完成时间</div><div class="d-value">2026-04-26 09:00:02</div></div>
+        <div class="detail-item"><div class="d-label">重试次数</div><div class="d-value">0</div></div>
+        <div class="detail-item"><div class="d-label">耗时</div><div class="d-value">1.2秒</div></div>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">执行步骤</div>
+      <table class="step-table">
+        <thead><tr><th>步骤</th><th>动作</th><th>结果ID</th><th>耗时</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>创建主账户记录</td><td>ACC_MCH_001</td><td>50ms</td><td><span class="tag tag-success">✓</span></td></tr>
+          <tr><td>2</td><td>创建子账户：交易户（TRADE）</td><td>SUB_TRADE_001</td><td>30ms</td><td><span class="tag tag-success">✓</span></td></tr>
+          <tr><td>3</td><td>创建子账户：待结算户（PENDING）</td><td>SUB_PENDING_001</td><td>28ms</td><td><span class="tag tag-success">✓</span></td></tr>
+          <tr><td>4</td><td>创建子账户：可提现户（WITHDRAWABLE）</td><td>SUB_WTDR_001</td><td>29ms</td><td><span class="tag tag-success">✓</span></td></tr>
+          <tr><td>5</td><td>创建钱包：MCH_TRADE（JPY）</td><td>WAL_TRADE_001</td><td>35ms</td><td><span class="tag tag-success">✓</span></td></tr>
+          <tr><td>6</td><td>创建钱包：MCH_PENDING（JPY）</td><td>WAL_PEND_001</td><td>33ms</td><td><span class="tag tag-success">✓</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer right"><button class="btn btn-primary" onclick="hideModal('m-detail-success')">关闭</button></div>
+  </div>
+</div>
+
+<!-- 处理中详情 -->
+<div class="modal" id="m-detail-processing">
+  <div class="modal-dialog" style="width:620px">
+    <div class="modal-header"><h3>开户任务详情 — 处理中</h3><button class="x-btn" onclick="hideModal('m-detail-processing')">×</button></div>
+    <div class="modal-body">
+      <div class="alert alert-info">该任务正在执行中，请等待完成后刷新查看结果。若超过5分钟仍处于处理中状态，可联系技术排查。</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="d-label">任务ID</div><div class="d-value" style="font-family:monospace">OPN-20260426-0002</div></div>
+        <div class="detail-item"><div class="d-label">任务状态</div><div class="d-value"><span class="tag tag-processing">处理中</span></div></div>
+        <div class="detail-item"><div class="d-label">实体ID</div><div class="d-value">ENT_GRP_B</div></div>
+        <div class="detail-item"><div class="d-label">实体类型</div><div class="d-value">集团（GROUP）</div></div>
+        <div class="detail-item"><div class="d-label">开始时间</div><div class="d-value">2026-04-26 09:01:00</div></div>
+        <div class="detail-item"><div class="d-label">已耗时</div><div class="d-value">约 3秒</div></div>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">实时执行日志</div>
+      <div class="tl">
+        <div class="tl-item ok"><div class="tl-time">09:01:00.012</div><div class="tl-text">参数校验通过</div></div>
+        <div class="tl-item ok"><div class="tl-time">09:01:00.045</div><div class="tl-text">幂等键检查：未重复</div></div>
+        <div class="tl-item ok"><div class="tl-time">09:01:00.120</div><div class="tl-text">主账户记录创建成功</div></div>
+        <div class="tl-item running"><div class="tl-time">09:01:00.205</div><div class="tl-text">⟳ 正在创建子账户：集团分润户...</div></div>
+      </div>
+    </div>
+    <div class="modal-footer right"><button class="btn btn-default" onclick="hideModal('m-detail-processing')">刷新</button><button class="btn btn-primary" onclick="hideModal('m-detail-processing')">关闭</button></div>
+  </div>
+</div>
+
+<!-- 500失败详情 -->
+<div class="modal" id="m-detail-fail500">
+  <div class="modal-dialog" style="width:660px">
+    <div class="modal-header"><h3>开户任务详情 — 执行失败（内部异常）</h3><button class="x-btn" onclick="hideModal('m-detail-fail500')">×</button></div>
+    <div class="modal-body">
+      <div class="alert alert-danger"><strong>失败类型：内部异常（500）</strong><br>系统内部执行异常，已自动重试2次，仍失败。可由运营手动重试，重试是幂等安全的。</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="d-label">任务ID</div><div class="d-value" style="font-family:monospace">OPN-20260426-0003</div></div>
+        <div class="detail-item"><div class="d-label">任务状态</div><div class="d-value"><span class="tag tag-fail">执行失败</span></div></div>
+        <div class="detail-item"><div class="d-label">实体ID</div><div class="d-value">MCH_MCD_005</div></div>
+        <div class="detail-item"><div class="d-label">实体类型</div><div class="d-value">商户</div></div>
+        <div class="detail-item"><div class="d-label">失败阶段</div><div class="d-value" style="color:#ff4d4f">Step 3：创建钱包时DB连接超时</div></div>
+        <div class="detail-item"><div class="d-label">已重试次数</div><div class="d-value"><span class="retry-badge">2</span> / 3次上限</div></div>
+        <div class="detail-item"><div class="d-label">第1次重试</div><div class="d-value">09:02:02（2秒后）→ 仍失败</div></div>
+        <div class="detail-item"><div class="d-label">第2次重试</div><div class="d-value">09:02:06（4秒后）→ 仍失败</div></div>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">执行步骤（补偿式重试逻辑）</div>
+      <div class="alert alert-info" style="font-size:11px">重试时将跳过已成功的步骤，从失败步骤继续，幂等安全。</div>
+      <table class="step-table">
+        <thead><tr><th>步骤</th><th>动作</th><th>第1次</th><th>第2次</th><th>第3次（手动重试）</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>创建主账户</td><td><span class="tag tag-success">✓</span></td><td><span class="tag tag-skip">跳过（已存在）</span></td><td><span class="tag tag-skip">跳过（已存在）</span></td></tr>
+          <tr><td>2</td><td>创建子账户：交易户</td><td><span class="tag tag-success">✓</span></td><td><span class="tag tag-skip">跳过（已存在）</span></td><td><span class="tag tag-skip">跳过（已存在）</span></td></tr>
+          <tr><td>3</td><td>创建钱包：MCH_TRADE</td><td><span class="tag tag-fail">✗ DB超时</span></td><td><span class="tag tag-fail">✗ DB超时</span></td><td><span style="color:#888">等待重试...</span></td></tr>
+          <tr><td>4~6</td><td>后续步骤</td><td colspan="3" style="color:#888;text-align:center">步骤3失败，后续未执行</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer between">
+      <button class="btn btn-default" onclick="hideModal('m-detail-fail500')">关闭</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-danger" onclick="hideModal('m-detail-fail500');showModal('m-skip')">标记跳过</button>
+        <button class="btn btn-warning" onclick="hideModal('m-detail-fail500');showModal('m-retry')">手动重试</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 422失败详情（父级不存在） -->
+<div class="modal" id="m-detail-fail422">
+  <div class="modal-dialog" style="width:580px">
+    <div class="modal-header"><h3>开户任务详情 — 参数错误拒绝</h3><button class="x-btn" onclick="hideModal('m-detail-fail422')">×</button></div>
+    <div class="modal-body">
+      <div class="alert alert-warn"><strong>失败类型：业务规则不满足（422）</strong><br>此类失败不会自动重试。调用方（其他组）需修正数据后重新调用开户接口。</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="d-label">任务ID</div><div class="d-value" style="font-family:monospace">OPN-20260426-0004</div></div>
+        <div class="detail-item"><div class="d-label">错误代码</div><div class="d-value" style="color:#cf1322;font-family:monospace">PARENT_NOT_FOUND</div></div>
+        <div class="detail-item"><div class="d-label">错误详情</div><div class="d-value full" style="color:#cf1322">父级实体 "UNKNOWN_ENT" 在账户系统中不存在，请先为该实体开户</div></div>
+        <div class="detail-item"><div class="d-label">建议操作</div><div class="d-value">① 确认 UNKNOWN_ENT 是否应先开户<br>② 若确认无误，先调用接口为 UNKNOWN_ENT 开户<br>③ 再重新调用为 MCH_XYZ_009 开户（使用新幂等键）</div></div>
+      </div>
+    </div>
+    <div class="modal-footer right"><button class="btn btn-primary" onclick="hideModal('m-detail-fail422')">关闭</button></div>
+  </div>
+</div>
+
+<!-- 422失败（实体类型未配置）-->
+<div class="modal" id="m-detail-fail422b">
+  <div class="modal-dialog" style="width:580px">
+    <div class="modal-header"><h3>开户任务详情 — 配置未就绪</h3><button class="x-btn" onclick="hideModal('m-detail-fail422b')">×</button></div>
+    <div class="modal-body">
+      <div class="alert alert-warn"><strong>失败类型：实体类型未配置（422）</strong><br>需要运营人员在配置中心补充配置，配置完成后可手动重试。</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="d-label">错误代码</div><div class="d-value" style="color:#cf1322;font-family:monospace">ENTITY_TYPE_NOT_CONFIGURED</div></div>
+        <div class="detail-item"><div class="d-label">错误详情</div><div class="d-value" style="color:#cf1322">实体类型 "门店" 的开户规则未配置，请先在配置中心添加配置</div></div>
+      </div>
+      <div class="alert alert-info">运营操作步骤：<br>1. 前往 配置中心 → 开户规则配置<br>2. 为"门店"实体类型添加开户规则<br>3. 回到此页面，点击"运营配置后重试"</div>
+    </div>
+    <div class="modal-footer between">
+      <button class="btn btn-default" onclick="hideModal('m-detail-fail422b')">关闭</button>
+      <button class="btn btn-warning" onclick="hideModal('m-detail-fail422b');showModal('m-retry-after-config')">配置完成，立即重试</button>
+    </div>
+  </div>
+</div>
+
+<!-- 永久失败详情 -->
+<div class="modal" id="m-detail-permfail">
+  <div class="modal-dialog" style="width:640px">
+    <div class="modal-header"><h3>开户任务详情 — 永久失败</h3><button class="x-btn" onclick="hideModal('m-detail-permfail')">×</button></div>
+    <div class="modal-body">
+      <div class="alert alert-danger"><strong>已达最大重试次数（5次），系统不再自动重试。</strong><br>需要人工排查原因后，由运营"强制重试"或"标记跳过"。</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="d-label">重试历史</div>
+          <div class="d-value">共5次，均失败：<br>
+            08:00:00 → 失败（DB连接超时）<br>
+            08:00:02 → 失败（DB连接超时）<br>
+            08:00:06 → 失败（DB连接超时）<br>
+            08:15:00 → 失败（DB写入锁超时）<br>
+            08:30:00 → 失败（DB写入锁超时）
+          </div>
+        </div>
+        <div class="detail-item"><div class="d-label">疑似原因</div><div class="d-value" style="color:#ff4d4f">数据库写入锁异常，建议DBA排查</div></div>
+      </div>
+    </div>
+    <div class="modal-footer between">
+      <button class="btn btn-default" onclick="hideModal('m-detail-permfail')">关闭</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-danger" onclick="hideModal('m-detail-permfail');showModal('m-skip')">标记跳过</button>
+        <button class="btn btn-warning" onclick="hideModal('m-detail-permfail');showModal('m-retry-perm')">强制重试</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 已跳过详情 -->
+<div class="modal" id="m-detail-skip">
+  <div class="modal-dialog" style="width:520px">
+    <div class="modal-header"><h3>开户任务详情 — 已跳过</h3><button class="x-btn" onclick="hideModal('m-detail-skip')">×</button></div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><div class="d-label">任务状态</div><div class="d-value"><span class="tag tag-skip">已跳过</span></div></div>
+        <div class="detail-item"><div class="d-label">跳过操作人</div><div class="d-value">Admin（admin@kpay.com）</div></div>
+        <div class="detail-item"><div class="d-label">跳过时间</div><div class="d-value">2026-04-25 16:30:00</div></div>
+        <div class="detail-item full"><div class="d-label">跳过原因</div><div class="d-value" style="color:#666">该商户MCH_DEL_007已确认不再使用，无需开户，由业务方确认</div></div>
+      </div>
+      <div class="alert alert-warn">已跳过的任务不再参与重试，如需恢复请联系技术人员修改状态。</div>
+    </div>
+    <div class="modal-footer right"><button class="btn btn-primary" onclick="hideModal('m-detail-skip')">关闭</button></div>
+  </div>
+</div>
+
+<!-- Parent变更详情 -->
+<div class="modal" id="m-detail-reparent">
+  <div class="modal-dialog" style="width:600px">
+    <div class="modal-header"><h3>开户任务详情 — 父级更新</h3><button class="x-btn" onclick="hideModal('m-detail-reparent')">×</button></div>
+    <div class="modal-body">
+      <div class="alert alert-success">父级更新成功。原有账户（子账户+钱包）保持不变，仅更新层级关系。</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="d-label">任务类型</div><div class="d-value"><span class="tag tag-processing">父级更新</span></div></div>
+        <div class="detail-item"><div class="d-label">实体ID</div><div class="d-value">STR_LKS_022（门店）</div></div>
+        <div class="detail-item"><div class="d-label">原父级</div><div class="d-value" style="color:#888">KPAY（自有公司）</div></div>
+        <div class="detail-item"><div class="d-label">新父级</div><div class="d-value" style="color:#52c41a">MCH_SBX_001（商户）</div></div>
+        <div class="detail-item"><div class="d-label">变更原因</div><div class="d-value">调用方传入新parent_id，系统自动覆盖</div></div>
+        <div class="detail-item"><div class="d-label">子账户影响</div><div class="d-value">无变化，保留原有子账户</div></div>
+        <div class="detail-item"><div class="d-label">钱包影响</div><div class="d-value">无变化，余额不受影响</div></div>
+        <div class="detail-item"><div class="d-label">入账规则影响</div><div class="d-value" style="color:#ff9a2e">⚠ 层级变化可能影响分润计算，请确认入账规则</div></div>
+      </div>
+    </div>
+    <div class="modal-footer right"><button class="btn btn-primary" onclick="hideModal('m-detail-reparent')">关闭</button></div>
+  </div>
+</div>
+
+<!-- 手动重试弹窗 -->
+<div class="modal" id="m-retry">
+  <div class="modal-dialog" style="width:460px">
+    <div class="modal-header"><h3>确认重试</h3><button class="x-btn" onclick="hideModal('m-retry')">×</button></div>
+    <div class="modal-body">
+      <div style="background:#f5f7fa;border:1px solid #e4e7ed;border-radius:6px;padding:12px;margin-bottom:12px;">
+        <div style="font-weight:600;margin-bottom:6px">任务：OPN-20260426-0003</div>
+        <div style="font-size:12px;color:#595959">实体：MCH_MCD_005（商户）<br>当前重试次数：2次<br>失败原因：创建钱包时DB连接超时</div>
+      </div>
+      <div class="alert alert-info">重试将从失败步骤继续（补偿式），已成功的步骤不会重复执行（幂等安全）。</div>
+      <div class="form-item">
+        <label class="form-label">重试备注</label>
+        <div class="form-content"><textarea class="form-textarea" placeholder="选填，记录此次重试原因"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer center">
+      <button class="btn btn-default" onclick="hideModal('m-retry')">取消</button>
+      <button class="btn btn-warning">确认重试</button>
+    </div>
+  </div>
+</div>
+
+<!-- 强制重试（永久失败） -->
+<div class="modal" id="m-retry-perm">
+  <div class="modal-dialog" style="width:460px">
+    <div class="modal-header"><h3>强制重试 — 永久失败任务</h3><button class="x-btn" onclick="hideModal('m-retry-perm')">×</button></div>
+    <div class="modal-body">
+      <div class="alert alert-danger">该任务已达最大重试次数（5次），强制重试前请确认已排查并修复根本原因，否则重试仍会失败。</div>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>排查结论</label>
+        <div class="form-content"><textarea class="form-textarea" placeholder="请填写排查结论和修复措施（必填）"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer center">
+      <button class="btn btn-default" onclick="hideModal('m-retry-perm')">取消</button>
+      <button class="btn btn-danger">强制重试</button>
+    </div>
+  </div>
+</div>
+
+<!-- 配置后重试 -->
+<div class="modal" id="m-retry-after-config">
+  <div class="modal-dialog" style="width:460px">
+    <div class="modal-header"><h3>配置完成后重试</h3><button class="x-btn" onclick="hideModal('m-retry-after-config')">×</button></div>
+    <div class="modal-body">
+      <div class="alert alert-info">请确认已在配置中心完成"门店"实体类型的开户规则配置，再执行重试。</div>
+      <div class="form-item">
+        <label class="form-label">配置确认</label>
+        <div class="form-content">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="chk-config">
+            我已在配置中心完成"门店"开户规则配置
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer center">
+      <button class="btn btn-default" onclick="hideModal('m-retry-after-config')">取消</button>
+      <button class="btn btn-primary">确认重试</button>
+    </div>
+  </div>
+</div>
+
+<!-- 标记跳过弹窗 -->
+<div class="modal" id="m-skip">
+  <div class="modal-dialog" style="width:460px">
+    <div class="modal-header"><h3>标记跳过</h3><button class="x-btn" onclick="hideModal('m-skip')">×</button></div>
+    <div class="modal-body">
+      <div class="alert alert-danger">⚠ 跳过后系统不再重试此任务。该实体将<strong>没有账户</strong>，无法入账。此操作不可撤销。</div>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>跳过原因</label>
+        <div class="form-content">
+          <textarea class="form-textarea" placeholder="请填写跳过原因（必填，将永久记录在审计日志中）"></textarea>
+          <div class="form-tip">最大200字符</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer center">
+      <button class="btn btn-default" onclick="hideModal('m-skip')">取消</button>
+      <button class="btn btn-danger">确认跳过</button>
+    </div>
+  </div>
+</div>
+
+<!-- 批量重试 -->
+<div class="modal" id="m-batch-retry">
+  <div class="modal-dialog" style="width:480px">
+    <div class="modal-header"><h3>批量重试</h3><button class="x-btn" onclick="hideModal('m-batch-retry')">×</button></div>
+    <div class="modal-body">
+      <div class="alert alert-info">将对所有"执行失败"状态的任务执行重试。<br>• 参数错误（400/422）类任务不会被重试<br>• 永久失败（5次）任务不在批量范围内</div>
+      <div style="background:#f5f7fa;border-radius:6px;padding:12px;font-size:13px;margin-bottom:12px">
+        <div>可重试任务数：<strong style="color:#ff9a2e">23</strong></div>
+        <div>参数错误（跳过）：9</div>
+        <div>永久失败（跳过）：2</div>
+      </div>
+    </div>
+    <div class="modal-footer center">
+      <button class="btn btn-default" onclick="hideModal('m-batch-retry')">取消</button>
+      <button class="btn btn-warning">批量重试 23 条</button>
+    </div>
+  </div>
+</div>
+
+<!-- 批量跳过 -->
+<div class="modal" id="m-batch-skip">
+  <div class="modal-dialog" style="width:480px">
+    <div class="modal-header"><h3>批量标记跳过</h3><button class="x-btn" onclick="hideModal('m-batch-skip')">×</button></div>
+    <div class="modal-body">
+      <div class="alert alert-danger">批量跳过将使选中任务的实体永久无法通过此任务开户。请谨慎操作。</div>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>跳过原因</label>
+        <div class="form-content"><textarea class="form-textarea" placeholder="请填写批量跳过的统一原因"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer center">
+      <button class="btn btn-default" onclick="hideModal('m-batch-skip')">取消</button>
+      <button class="btn btn-danger">确认批量跳过</button>
+    </div>
+  </div>
+</div>
+
+<!-- 手动触发开户 -->
+<div class="modal" id="m-manual-open">
+  <div class="modal-dialog" style="width:560px">
+    <div class="modal-header"><h3>手动触发开户</h3><button class="x-btn" onclick="hideModal('m-manual-open')">×</button></div>
+    <div class="modal-body">
+      <div class="alert alert-warn">手动触发开户用于处理未能通过API自动触发的场景（如调用方遗漏、数据订正等）。</div>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>实体ID</label>
+        <div class="form-content"><input class="form-input" placeholder="请输入实体ID，如 MCH_XXX_001"></div>
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>实体类型</label>
+        <div class="form-content">
+          <select class="form-select">
+            <option>请选择实体类型</option>
+            <option>集团</option><option>母公司</option><option>子公司</option>
+            <option>商户</option><option>门店</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>父级实体ID</label>
+        <div class="form-content"><input class="form-input" placeholder="请输入父级实体ID"></div>
+      </div>
+      <div class="form-item">
+        <label class="form-label">幂等键</label>
+        <div class="form-content">
+          <input class="form-input" placeholder="留空则系统自动生成" id="idemKey">
+          <div class="form-tip">建议填写，防止重复提交</div>
+        </div>
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>触发原因</label>
+        <div class="form-content"><textarea class="form-textarea" placeholder="请填写手动触发原因（审计用）"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer between">
+      <button class="btn btn-default" onclick="hideModal('m-manual-open')">取消</button>
+      <button class="btn btn-primary">提交开户</button>
+    </div>
+  </div>
+</div>
+
+<!-- 开户规则详情 -->
+<div class="modal" id="m-rule-detail">
+  <div class="modal-dialog" style="width:620px">
+    <div class="modal-header"><h3>开户规则详情 — 商户开户规则</h3><button class="x-btn" onclick="hideModal('m-rule-detail')">×</button></div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><div class="d-label">规则名称</div><div class="d-value">商户开户规则</div></div>
+        <div class="detail-item"><div class="d-label">适用实体类型</div><div class="d-value">商户（MERCHANT）</div></div>
+        <div class="detail-item"><div class="d-label">触发方式</div><div class="d-value">API调用（同步）</div></div>
+        <div class="detail-item"><div class="d-label">父级变更处理</div><div class="d-value"><span class="tag tag-processing">新parent覆盖旧parent</span></div></div>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin:10px 0 8px">自动创建的子账户</div>
+      <table class="step-table">
+        <thead><tr><th>子账户类型</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>交易户（TRADE）</td><td>资金汇集过渡账户</td></tr>
+          <tr><td>待结算户（PENDING）</td><td>价值日期前暂存</td></tr>
+          <tr><td>可提现户（WITHDRAWABLE）</td><td>结算完成后存放</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:13px;font-weight:600;margin:10px 0 8px">自动创建的钱包</div>
+      <table class="step-table">
+        <thead><tr><th>钱包类型</th><th>单位类型</th><th>默认单位</th></tr></thead>
+        <tbody>
+          <tr><td>MCH_TRADE（商户交易钱包）</td><td>CASH</td><td>JPY</td></tr>
+          <tr><td>MCH_PENDING（商户待结算钱包）</td><td>CASH</td><td>JPY</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer right"><button class="btn btn-primary" onclick="hideModal('m-rule-detail')">关闭</button></div>
+  </div>
+</div>
+
+<!-- 规则新增弹窗 -->
+<div class="modal" id="m-rule-add">
+  <div class="modal-dialog" style="width:640px">
+    <div class="modal-header"><h3>新增开户规则</h3><button class="x-btn" onclick="hideModal('m-rule-add')">×</button></div>
+    <div class="modal-body">
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>规则名称</label>
+        <div class="form-content"><input class="form-input" placeholder="例：二级子公司开户规则"></div>
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>适用实体类型</label>
+        <div class="form-content"><select class="form-select">
+          <option>请选择</option>
+          <option>集团</option><option>母公司</option><option>子公司</option>
+          <option>二级子公司</option><option>商户</option><option>门店</option>
+        </select></div>
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>父级变更处理</label>
+        <div class="form-content">
+          <div style="display:flex;gap:16px;font-size:13px">
+            <label><input type="radio" name="rp" checked> 新parent覆盖旧parent（原子更新）</label>
+            <label><input type="radio" name="rp"> 拒绝（已有parent时不允许修改）</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>需创建子账户</label>
+        <div class="form-content">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" checked> 分润户</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox"> 交易户</label>
+          </div>
+          <button class="btn btn-default btn-sm">+ 自定义添加</button>
+        </div>
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>需创建钱包</label>
+        <div class="form-content">
+          <div style="display:flex;gap:8px;margin-bottom:6px">
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px"><input type="checkbox" checked> 分润钱包（JPY）</label>
+          </div>
+          <button class="btn btn-default btn-sm">+ 添加钱包</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer between">
+      <button class="btn btn-default" onclick="hideModal('m-rule-add')">取消</button>
+      <button class="btn btn-primary">提交审核</button>
+    </div>
+  </div>
+</div>
+
+<!-- 规则编辑 -->
+<div class="modal" id="m-rule-edit">
+  <div class="modal-dialog" style="width:560px">
+    <div class="modal-header"><h3>编辑开户规则 — 商户开户规则</h3><button class="x-btn" onclick="hideModal('m-rule-edit')">×</button></div>
+    <div class="modal-body">
+      <div class="alert alert-warn">编辑开户规则需提交审核，审核通过后生效。不影响已完成的开户任务。</div>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>规则名称</label>
+        <div class="form-content"><input class="form-input" value="商户开户规则"></div>
+      </div>
+      <div class="form-item">
+        <label class="form-label">父级变更处理</label>
+        <div class="form-content">
+          <div style="display:flex;gap:16px;font-size:13px">
+            <label><input type="radio" name="rpe" checked> 新parent覆盖旧parent</label>
+            <label><input type="radio" name="rpe"> 拒绝</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer between">
+      <button class="btn btn-default" onclick="hideModal('m-rule-edit')">取消</button>
+      <button class="btn btn-primary">提交审核</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal" id="m-export">
+  <div class="modal-dialog" style="width:420px">
+    <div class="modal-header"><h3>导出开户任务</h3><button class="x-btn" onclick="hideModal('m-export')">×</button></div>
+    <div class="modal-body">
+      <div class="form-item">
+        <label class="form-label">导出范围</label>
+        <div class="form-content">
+          <div style="display:flex;gap:14px;font-size:13px">
+            <label><input type="radio" name="exp" checked> 当前查询结果</label>
+            <label><input type="radio" name="exp"> 全部任务</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-item">
+        <label class="form-label">导出格式</label>
+        <div class="form-content"><select class="form-select"><option>Excel (.xlsx)</option><option>CSV</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer right">
+      <button class="btn btn-default" onclick="hideModal('m-export')">取消</button>
+      <button class="btn btn-primary">确认导出</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- end content -->
+</div><!-- end main -->
+
+<script>
+// ── Page switching ──
+const pageLabels = {
+  'p-task':'开户任务管理', 'p-detail-demo':'开户任务详情',
+  'p-entity':'实体账户管理', 'p-status':'账户状态总览',
+  'p-config':'开户规则配置', 'p-mvp':'MVP范围分析', 'p-arch':'API vs 事件驱动'
+};
+
+function showPage(id) {
+  document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+  document.getElementById('pageLabel').textContent = pageLabels[id] || id;
+}
+
+// ── Modal ──
+function showModal(id) {
+  const m = document.getElementById(id);
+  if (m) m.classList.add('show');
+}
+function hideModal(id) {
+  const m = document.getElementById(id);
+  if (m) m.classList.remove('show');
+}
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+
+// ── Filter by status (stat card click) ──
+function filterByStatus(status) {
+  const sel = document.getElementById('statusFilter');
+  if (sel) sel.value = status;
+  document.querySelectorAll('[id^="sc-"]').forEach(c => c.classList.remove('active'));
+  const sc = document.getElementById('sc-' + status);
+  if (sc) sc.classList.add('active');
+}
+
+// ── Select all ──
+function toggleAll(cb) {
+  document.querySelectorAll('#taskTable tbody input[type=checkbox]').forEach(c => c.checked = cb.checked);
+  updateSelectedCount();
+}
+document.addEventListener('change', function(e) {
+  if (e.target.matches('#taskTable tbody input[type=checkbox]')) updateSelectedCount();
+});
+function updateSelectedCount() {
+  const cnt = document.querySelectorAll('#taskTable tbody input[type=checkbox]:checked').length;
+  const el = document.getElementById('selectedCount');
+  if (el) el.textContent = cnt > 0 ? `已选 ${cnt} 条` : '';
+}
+
+// ── Auto-generate idempotency key ──
+const ikField = document.getElementById('idemKey');
+if (ikField) {
+  ikField.placeholder = '留空则系统自动生成：idem-' + Date.now();
+}
+</script>
+</body>
+</html>
