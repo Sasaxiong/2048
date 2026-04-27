@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>账务前置入账规则配置</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif}
+body{background:#f5f7fa;font-size:13px;color:#333}
+.layout{display:flex;height:100vh;overflow:hidden}
+
+/* ── Left nav ── */
+.left-nav{width:200px;background:#222b45;color:#fff;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden}
+.nav-logo{padding:14px 16px;background:#192038;font-size:14px;font-weight:600}
+.nav-logo span{display:block;font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;font-weight:400}
+.nav-steps{flex:1;overflow-y:auto;padding:8px 0}
+.nav-step{display:flex;align-items:center;gap:8px;padding:9px 14px;cursor:pointer;transition:.15s;border-left:3px solid transparent;font-size:12px;color:rgba(255,255,255,.6)}
+.nav-step:hover{background:#2b3655;color:#fff}
+.nav-step.active{background:#1b2540;border-left-color:#409eff;color:#40a9ff}
+.nav-step.done{color:rgba(255,255,255,.5)}
+.nav-step.done::after{content:'✓';margin-left:auto;color:#52c41a;font-size:11px}
+.step-num{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.nav-step.active .step-num{background:#409eff;color:#fff}
+.nav-step.done .step-num{background:#52c41a;color:#fff}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.top-bar{background:#fff;border-bottom:1px solid #e4e7ed;padding:0 20px;height:50px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.top-bar h2{font-size:15px;font-weight:600}
+.top-bar .actions{display:flex;gap:8px}
+.content-area{flex:1;overflow-y:auto;padding:16px 20px}
+
+/* ── Section cards ── */
+.section{background:#fff;border-radius:8px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.section-head{padding:13px 18px;border-bottom:1px solid #f5f5f5;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.section-head h3{font-size:13px;font-weight:600;flex:1}
+.section-badge{font-size:11px;background:#e6f7ff;color:#0050b3;padding:1px 7px;border-radius:10px}
+.section-toggle{color:#bfbfbf;transition:.2s;font-size:14px}
+.section-body{padding:16px 18px}
+.section-body.collapsed{display:none}
+
+/* ── Form ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
+.form-grid-3{grid-template-columns:1fr 1fr 1fr}
+.form-grid.full{grid-template-columns:1fr}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg.full{grid-column:1/-1}
+.fl{font-size:12px;color:#555;display:flex;align-items:center;gap:4px}
+.fl .req{color:#ff4d4f}
+.fl .tip{font-size:11px;color:#bfbfbf;font-weight:400;margin-left:4px}
+.fi,.fs,.ft{padding:6px 10px;border:1px solid #dcdfe6;border-radius:4px;font-size:12px;color:#262626;width:100%;outline:none;transition:border .15s;background:#fff}
+.fi:focus,.fs:focus,.ft:focus{border-color:#409eff;box-shadow:0 0 0 2px rgba(64,158,255,.12)}
+.fi:disabled,.fs:disabled{background:#f5f7fa;color:#999;cursor:not-allowed}
+.ft{min-height:64px;resize:vertical;font-family:inherit}
+.fi.code-style{font-family:monospace;font-size:11px;background:#fafafa}
+.form-tip{font-size:11px;color:#8c8c8c;margin-top:2px}
+.form-tip.blue{color:#409eff}
+.form-tip.red{color:#ff4d4f}
+.readonly-text{padding:6px 10px;border:1px solid #f0f0f0;border-radius:4px;background:#f9f9f9;color:#666;font-size:12px}
+
+/* ── Tags ── */
+.tag-input-wrap{display:flex;flex-wrap:wrap;gap:5px;padding:5px 8px;border:1px solid #dcdfe6;border-radius:4px;min-height:34px;align-items:center;cursor:text;transition:border .15s}
+.tag-input-wrap:focus-within{border-color:#409eff;box-shadow:0 0 0 2px rgba(64,158,255,.12)}
+.tag-chip{background:#e6f7ff;color:#0050b3;padding:2px 8px;border-radius:12px;font-size:11px;display:flex;align-items:center;gap:4px}
+.tag-chip .del{cursor:pointer;color:#8c8c8c;line-height:1}.tag-chip .del:hover{color:#ff4d4f}
+.tag-input{border:none;outline:none;font-size:12px;min-width:80px;padding:2px 0;flex:1}
+
+/* ── Buttons ── */
+.btn{padding:5px 14px;border-radius:4px;border:none;cursor:pointer;font-size:12px;transition:.15s;display:inline-flex;align-items:center;gap:4px}
+.btn-primary{background:#409eff;color:#fff}.btn-primary:hover{background:#66b1ff}
+.btn-success{background:#52c41a;color:#fff}.btn-success:hover{background:#73d13d}
+.btn-default{background:#fff;border:1px solid #dcdfe6;color:#666}.btn-default:hover{border-color:#409eff;color:#409eff}
+.btn-danger{background:#fff;border:1px solid #f56c6c;color:#f56c6c}
+.btn-warning{background:#fff;border:1px solid #ff9a2e;color:#ff9a2e}
+.btn-dashed{background:#fff;border:1px dashed #d9d9d9;color:#888}.btn-dashed:hover{border-color:#409eff;color:#409eff}
+.btn-sm{padding:3px 10px;font-size:11px}
+.btn-xs{padding:2px 7px;font-size:11px}
+.btn-text{color:#409eff;background:none;border:none;cursor:pointer;font-size:12px;padding:2px 4px}
+.btn-text:hover{color:#66b1ff}
+.btn-text-red{color:#f56c6c}.btn-text-gray{color:#999}
+
+/* ── Inline type+value combo ── */
+.tv-row{display:grid;grid-template-columns:160px 1fr;gap:6px;align-items:start}
+.tv-row.three{grid-template-columns:130px 130px 1fr}
+
+/* ── Switch ── */
+.sw-wrap{display:flex;align-items:center;gap:8px;padding-top:6px}
+.switch{position:relative;width:36px;height:18px;display:inline-block;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.sw-track{position:absolute;inset:0;background:#ccc;border-radius:9px;cursor:pointer;transition:.2s}
+.sw-track:before{content:'';position:absolute;width:14px;height:14px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s}
+input:checked+.sw-track{background:#409eff}
+input:checked+.sw-track:before{transform:translateX(18px)}
+
+/* ── Condition builder ── */
+.cond-group{border:1px solid #e8e8e8;border-radius:6px;padding:10px 12px;background:#fafafa;position:relative;margin-bottom:8px}
+.cond-group.child{margin-left:20px;background:#f0f5ff;border-color:#c8dcff}
+.logic-bar{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.logic-btn{padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600;border:none;cursor:pointer}
+.lb-and{background:#409eff;color:#fff}
+.lb-or{background:#722ed1;color:#fff}
+.lb-off{background:#f0f0f0;color:#999}
+.depth-badge{font-size:10px;background:#e4e7ed;color:#666;padding:1px 6px;border-radius:3px}
+.cond-row{display:grid;grid-template-columns:120px 140px 110px 130px 1fr 28px;gap:5px;align-items:start;background:#fff;padding:6px 8px;border-radius:4px;margin-bottom:5px;border:1px solid #f0f0f0}
+.drag-h{color:#d9d9d9;cursor:move;font-size:16px;padding-top:4px;text-align:center}
+.del-btn{color:#d9d9d9;background:none;border:none;cursor:pointer;font-size:18px;line-height:1;padding-top:2px}.del-btn:hover{color:#f56c6c}
+.grp-del{position:absolute;right:8px;top:8px;background:none;border:none;font-size:16px;color:#ccc;cursor:pointer}.grp-del:hover{color:#f56c6c}
+.cond-add-bar{display:flex;gap:6px;margin-top:6px}
+
+/* ── Step table (business account) ── */
+.step-wrap{overflow-x:auto}
+.step-table{width:100%;border-collapse:collapse;font-size:11px;min-width:1200px}
+.step-table th{background:#e6f7ff;color:#0050b3;font-weight:600;padding:7px 8px;text-align:left;border:1px solid #bae0ff;white-space:nowrap;position:sticky;top:0;z-index:1}
+.step-table td{padding:5px 6px;border:1px solid #f0f0f0;vertical-align:top}
+.step-table tr:hover td{background:#f9fbff}
+.step-table .row-num{text-align:center;font-weight:600;color:#999;min-width:28px}
+.mini-sel{padding:4px 6px;border:1px solid #dcdfe6;border-radius:3px;font-size:11px;width:100%;background:#fff}
+.mini-in{padding:4px 6px;border:1px solid #dcdfe6;border-radius:3px;font-size:11px;width:100%;font-family:monospace}
+.mini-tv{display:grid;grid-template-columns:100px 1fr;gap:4px}
+
+/* ── Journal entries ── */
+.je-wrap{overflow-x:auto}
+.je-table{width:100%;border-collapse:collapse;font-size:11px;min-width:900px}
+.je-table th{background:#f0f5ff;color:#531dab;font-weight:600;padding:7px 8px;border:1px solid #d3adf7;white-space:nowrap}
+.je-table td{padding:5px 6px;border:1px solid #f0f0f0;vertical-align:top}
+.je-table tr:hover td{background:#faf0ff}
+
+/* ── Balance check ── */
+.balance-ok{color:#52c41a;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px}
+.balance-fail{color:#ff4d4f;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px}
+.balance-pending{color:#888;font-size:12px;display:flex;align-items:center;gap:4px}
+
+/* ── JSON editor ── */
+.json-wrap{position:relative}
+.json-editor{background:#1e2027;color:#abb2bf;border-radius:6px;padding:12px;font-family:monospace;font-size:11px;line-height:1.8;min-height:180px;max-height:320px;overflow-y:auto;white-space:pre;border:1px solid #333;outline:none;width:100%}
+.json-toolbar{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.json-nav{display:flex;align-items:center;gap:8px;font-size:12px;color:#595959}
+.json-nav .nav-num{font-weight:600;color:#409eff}
+
+/* ── Test result ── */
+.test-result{border:1px solid #f0f0f0;border-radius:6px;overflow:hidden}
+.test-result-head{background:#fafafa;padding:8px 12px;font-size:12px;font-weight:600;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between}
+.test-result-body{padding:12px}
+.result-step{display:flex;gap:10px;padding:5px 0;border-bottom:1px dashed #f5f5f5;font-size:11px}
+.result-step:last-child{border-bottom:none}
+.step-ok{color:#52c41a;font-size:13px;flex-shrink:0}.step-fail{color:#ff4d4f;font-size:13px;flex-shrink:0}
+.je-result{display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:0;font-size:11px;margin-top:8px}
+.je-result div{padding:5px 8px;border:1px solid #f0f0f0}
+.je-result.head div{background:#f0f5ff;font-weight:600;color:#531dab}
+.je-result .dr{color:#cf1322;font-weight:600}.je-result .cr{color:#389e0d;font-weight:600}
+.total-row div{background:#f9f0ff;font-weight:700}
+
+/* ── Lifecycle ── */
+.lifecycle-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+/* ── Alert ── */
+.alert{padding:9px 12px;border-radius:4px;font-size:12px;margin-bottom:10px;line-height:1.7}
+.alert-info{background:#e6f7ff;border-left:3px solid #409eff;color:#003a8c}
+.alert-warn{background:#fff7e6;border-left:3px solid #ff9a2e;color:#7c3a00}
+.alert-success{background:#f6ffed;border-left:3px solid #52c41a;color:#135200}
+
+/* ── Bottom bar ── */
+.bottom-bar{background:#fff;border-top:1px solid #e4e7ed;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.bottom-bar .progress-steps{display:flex;gap:4px;align-items:center;font-size:12px;color:#888}
+.progress-dot{width:8px;height:8px;border-radius:50%;background:#d9d9d9}
+.progress-dot.done{background:#52c41a}
+.progress-dot.active{background:#409eff}
+
+/* misc */
+.section-divider{height:1px;background:#f5f5f5;margin:12px 0}
+.inline-tip{font-size:11px;color:#409eff;margin-left:8px}
+.badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px}
+.badge-blue{background:#e6f7ff;color:#0050b3}.badge-green{background:#f6ffed;color:#389e0d}
+.badge-orange{background:#fff7e6;color:#d46b08}.badge-red{background:#fff1f0;color:#cf1322}
+.badge-gray{background:#f5f5f5;color:#8c8c8c}
+.mini-badge{font-size:10px;padding:1px 5px;border-radius:8px;background:#f0f0f0;color:#666;margin-left:4px}
+
+/* JSON token colors */
+.jk{color:#e06c75}.jv{color:#98c379}.jn{color:#d19a66}.jb{color:#c678dd}.jp{color:#5c6370}
+
+/* Scroll */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:#f5f5f5}
+::-webkit-scrollbar-thumb{background:#d9d9d9;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ── LEFT NAV ── -->
+<div class="left-nav">
+  <div class="nav-logo">入账规则配置<span>账务前置引擎</span></div>
+  <div class="nav-steps">
+    <div class="nav-step active" onclick="scrollTo('s1')"><div class="step-num">1</div>规则基本信息</div>
+    <div class="nav-step" onclick="scrollTo('s2')"><div class="step-num">2</div>监听数据表</div>
+    <div class="nav-step" onclick="scrollTo('s3')"><div class="step-num">3</div>触发条件</div>
+    <div class="nav-step" onclick="scrollTo('s4')"><div class="step-num">4</div>业务账户入账</div>
+    <div class="nav-step" onclick="scrollTo('s5')"><div class="step-num">5</div>凭证配置</div>
+    <div class="nav-step" onclick="scrollTo('s6')"><div class="step-num">6</div>测试验证</div>
+    <div class="nav-step" onclick="scrollTo('s7')"><div class="step-num">7</div>生命周期</div>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="main">
+<div class="top-bar">
+  <h2>新增入账规则</h2>
+  <div class="actions">
+    <button class="btn btn-default">取消</button>
+    <button class="btn btn-default" onclick="saveDraft()">保存草稿</button>
+    <button class="btn btn-warning btn-sm" onclick="openTestPanel()">🧪 执行测试</button>
+    <button class="btn btn-success" onclick="submitRule()">提交审核</button>
+  </div>
+</div>
+
+<div class="content-area" id="contentArea">
+
+<!-- ══ S1: 规则基本信息 ══ -->
+<div class="section" id="s1">
+  <div class="section-head" onclick="toggleSection('s1')">
+    <h3>① 规则基本信息</h3>
+    <span class="section-toggle" id="tog-s1">▾</span>
+  </div>
+  <div class="section-body" id="body-s1">
+    <div class="form-grid">
+      <div class="fg">
+        <label class="fl"><span class="req">*</span>规则编码 <span class="tip">系统自动赋值，创建后不可修改</span></label>
+        <input class="fi code-style" id="ruleCode" value="RULE_202604210001" disabled>
+        <div class="form-tip">^[A-Z][A-Z0-9_]*$ 最大150字符，唯一</div>
+      </div>
+      <div class="fg">
+        <label class="fl"><span class="req">*</span>规则名称</label>
+        <input class="fi" id="ruleName" placeholder="例：日本Adyen正向消费入账规则" oninput="checkField(this)">
+      </div>
+      <div class="fg">
+        <label class="fl">版本号 <span class="tip">系统自动生成</span></label>
+        <div class="readonly-text">v1.0.0</div>
+        <div class="form-tip">每次激活后编辑自动递增</div>
+      </div>
+      <div class="fg">
+        <label class="fl"><span class="req">*</span>状态</label>
+        <select class="fs" id="ruleStatus">
+          <option value="PENDING" selected>PENDING（待审核）</option>
+          <option value="ACTIVATED">ACTIVATED（已激活）</option>
+          <option value="DISABLED">DISABLED（已停用）</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl"><span class="req">*</span>执行优先级 <span class="tip">数值越小优先级越高</span></label>
+        <input class="fi" type="number" value="100" min="1" max="999" placeholder="1-999">
+        <div class="form-tip">同分组内建议不重复，1最高，999最低</div>
+      </div>
+      <div class="fg">
+        <label class="fl"><span class="req">*</span>优先级分组</label>
+        <select class="fs">
+          <option>TRANSACTION（交易入账）</option>
+          <option>RECONCILIATION（对账）</option>
+          <option>PROFIT_ACCOUNT（分润账户）</option>
+          <option>FEE_ACCOUNT（费用账户）</option>
+          <option selected>OTHER（其他）</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl"><span class="req">*</span>入账模式</label>
+        <select class="fs">
+          <option selected>CASCADE（伞形下沉入账）</option>
+          <option>SPLIT（分账）</option>
+          <option>HYBRID（混合入账）</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl"><span class="req">*</span>入账开关</label>
+        <select class="fs">
+          <option selected>BOTH（业务账户+科目）</option>
+          <option>LEDGER_ONLY（仅科目入账）</option>
+          <option>BUSINESS_ONLY（仅业务账户入账）</option>
+        </select>
+      </div>
+      <div class="fg full">
+        <label class="fl">标签</label>
+        <div class="tag-input-wrap" id="tagWrap" onclick="document.getElementById('tagInput').focus()">
+          <span class="tag-chip">日本 <span class="del" onclick="delTag(this)">×</span></span>
+          <span class="tag-chip">Adyen <span class="del" onclick="delTag(this)">×</span></span>
+          <span class="tag-chip">消费 <span class="del" onclick="delTag(this)">×</span></span>
+          <input class="tag-input" id="tagInput" placeholder="输入标签后按回车" onkeydown="addTag(event)">
+        </div>
+      </div>
+      <div class="fg full">
+        <label class="fl">规则描述</label>
+        <textarea class="ft" placeholder="描述该规则的适用场景和入账逻辑（选填，最大300字符）" style="min-height:52px"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S2: 监听数据表 + 会计日 ══ -->
+<div class="section" id="s2">
+  <div class="section-head" onclick="toggleSection('s2')">
+    <h3>② 监听数据表 &amp; 会计日配置</h3>
+    <span class="section-toggle" id="tog-s2">▾</span>
+  </div>
+  <div class="section-body" id="body-s2">
+    <div class="form-grid">
+      <div class="fg">
+        <label class="fl"><span class="req">*</span>监听数据表 <span class="tip">配置中心预注册的数据源</span></label>
+        <select class="fs" id="dataSource" onchange="onDataSourceChange()">
+          <option value="">请选择数据源</option>
+          <option value="TXN" selected>交易记录表（transaction）</option>
+          <option value="REFUND">退款记录表（refund）</option>
+          <option value="SETTLEMENT">结算单表（settlement）</option>
+          <option value="PAYOUT">出款记录表（payout）</option>
+        </select>
+        <div class="form-tip">选择后，触发条件的字段下拉将联动更新</div>
+      </div>
+      <div class="fg">
+        <label class="fl"><span class="req">*</span>基准时间来源</label>
+        <select class="fs" id="baseTimeSource">
+          <option value="$.transaction_data.finish_time" selected>$.transaction_data.finish_time（交易完成时间）</option>
+          <option value="$.transaction_data.created_time">$.transaction_data.created_time（交易创建时间）</option>
+          <option value="$.transaction_data.auth_time">$.transaction_data.auth_time（授权时间）</option>
+        </select>
+        <div class="form-tip">用于计算会计日的时间戳字段</div>
+      </div>
+      <div class="fg">
+        <label class="fl"><span class="req">*</span>节假日处理</label>
+        <select class="fs">
+          <option value="NO_SKIP" selected>NO_SKIP（不跳过，会计日通常不顺延）</option>
+          <option value="SKIP">SKIP（跳过节假日，顺延至下一工作日）</option>
+        </select>
+      </div>
+    </div>
+    <div class="alert alert-info" style="margin-top:8px">
+      <strong>会计日计算逻辑：</strong>基准时间 → 转换为实体时区本地时间 → 对比实体日切时间 → 若超过日切+1天 → 加偏移天数（步骤级）→ 节假日处理
+    </div>
+  </div>
+</div>
+
+<!-- ══ S3: 触发条件 ══ -->
+<div class="section" id="s3">
+  <div class="section-head" onclick="toggleSection('s3')">
+    <h3>③ 触发条件</h3>
+    <span class="section-badge" id="condCount">1 个条件组</span>
+    <span class="section-toggle" id="tog-s3">▾</span>
+  </div>
+  <div class="section-body" id="body-s3">
+    <div class="alert alert-info">
+      触发条件决定哪些事件会命中此规则。多条规则命中同一事件时，按优先级顺序执行。
+    </div>
+
+    <!-- Condition group root -->
+    <div id="condRoot">
+      <div class="cond-group" id="cg0">
+        <button class="grp-del" onclick="removeGroup('cg0')" title="删除此组">×</button>
+        <div class="logic-bar">
+          <button class="logic-btn lb-and" onclick="toggleLogic(this,'AND')">AND</button>
+          <button class="logic-btn lb-off" onclick="toggleLogic(this,'OR')">OR</button>
+          <span class="depth-badge">深度 1/5</span>
+          <label style="font-size:11px;color:#888;display:flex;align-items:center;gap:4px;margin-left:8px">
+            <input type="checkbox" onchange="toggleNot(this)"> NOT（对整组取反）
+          </label>
+        </div>
+        <!-- Condition row 1 -->
+        <div class="cond-row" id="cr1">
+          <div class="drag-h">⠿</div>
+          <select class="mini-sel" onchange="onTableSelect(this)" data-row="cr1">
+            <option value="">选择数据表</option>
+            <option value="TXN" selected>交易表</option>
+            <option value="MCH">商户表</option>
+          </select>
+          <select class="mini-sel field-sel" onchange="onFieldSelect(this)" data-row="cr1">
+            <option value="payment_channel" data-type="ENUM" selected>支付渠道</option>
+            <option value="pay_amount" data-type="NUMBER">交易金额</option>
+            <option value="country_code" data-type="ENUM">国家码</option>
+            <option value="transaction_type" data-type="ENUM">交易类型</option>
+            <option value="created_at" data-type="DATE">创建时间</option>
+          </select>
+          <select class="mini-sel op-sel" onchange="onOpSelect(this)" data-row="cr1">
+            <option>等于</option><option>不等于</option><option>属于</option><option>不属于</option>
+          </select>
+          <select class="mini-sel match-type-sel" onchange="onMatchTypeChange(this)" data-row="cr1">
+            <option value="FIXED" selected>固定值</option>
+            <option value="EVENT_FIELD">从事件字段取值</option>
+            <option value="EXPR">表达式</option>
+          </select>
+          <div class="val-cell" id="val-cr1">
+            <select class="mini-sel" multiple size="2" style="height:52px">
+              <option selected>ADYEN_JP</option>
+              <option>WORLDPAY_JP</option>
+              <option>STRIPE</option>
+            </select>
+          </div>
+          <button class="del-btn" onclick="removeCond(this)">×</button>
+        </div>
+        <!-- Condition row 2 -->
+        <div class="cond-row" id="cr2">
+          <div class="drag-h">⠿</div>
+          <select class="mini-sel" onchange="onTableSelect(this)" data-row="cr2">
+            <option value="TXN" selected>交易表</option>
+            <option value="MCH">商户表</option>
+          </select>
+          <select class="mini-sel field-sel" onchange="onFieldSelect(this)" data-row="cr2">
+            <option value="payment_channel" data-type="ENUM">支付渠道</option>
+            <option value="pay_amount" data-type="NUMBER">交易金额</option>
+            <option value="country_code" data-type="ENUM" selected>国家码</option>
+            <option value="transaction_type" data-type="ENUM">交易类型</option>
+          </select>
+          <select class="mini-sel op-sel" data-row="cr2">
+            <option>等于</option><option>不等于</option><option>属于</option><option>不属于</option>
+          </select>
+          <select class="mini-sel match-type-sel" onchange="onMatchTypeChange(this)" data-row="cr2">
+            <option value="FIXED" selected>固定值</option>
+            <option value="EVENT_FIELD">从事件字段取值</option>
+          </select>
+          <div class="val-cell" id="val-cr2">
+            <select class="mini-sel">
+              <option selected>JP（日本）</option><option>HK（香港）</option><option>SG（新加坡）</option>
+            </select>
+          </div>
+          <button class="del-btn" onclick="removeCond(this)">×</button>
+        </div>
+        <div class="cond-add-bar">
+          <button class="btn btn-dashed btn-xs" onclick="addCondRow('cg0')">＋ 添加条件</button>
+          <button class="btn btn-dashed btn-xs" onclick="addChildGroup('cg0')">＋ 添加子组</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+      <button class="btn btn-dashed btn-sm" onclick="addRootGroup()">＋ 新增条件组</button>
+      <button class="btn btn-default btn-sm" onclick="showJsonCond()">JSON 模式</button>
+    </div>
+
+    <!-- JSON mode panel -->
+    <div id="jsonCondPanel" style="display:none;margin-top:10px">
+      <div class="alert alert-warn">JSON模式仅供查看和高级编辑，修改后点击"应用JSON"更新上方条件组。</div>
+      <div class="json-toolbar">
+        <button class="btn btn-default btn-sm" onclick="formatJson('jsonCond')">格式化</button>
+        <button class="btn btn-primary btn-sm">应用JSON</button>
+        <button class="btn btn-default btn-sm" onclick="document.getElementById('jsonCondPanel').style.display='none'">关闭</button>
+      </div>
+      <div class="json-editor" contenteditable="true" id="jsonCond"><span class="jp">// 触发条件 JSON</span>
+{
+  <span class="jk">"logic"</span>: <span class="jv">"AND"</span>,
+  <span class="jk">"conditions"</span>: [
+    { <span class="jk">"table"</span>: <span class="jv">"TXN"</span>, <span class="jk">"field"</span>: <span class="jv">"payment_channel"</span>, <span class="jk">"op"</span>: <span class="jv">"IN"</span>, <span class="jk">"value"</span>: [<span class="jv">"ADYEN_JP"</span>] },
+    { <span class="jk">"table"</span>: <span class="jv">"TXN"</span>, <span class="jk">"field"</span>: <span class="jv">"country_code"</span>, <span class="jk">"op"</span>: <span class="jv">"EQ"</span>, <span class="jk">"value"</span>: <span class="jv">"JP"</span> }
+  ]
+}</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S4: 业务账户入账 ══ -->
+<div class="section" id="s4">
+  <div class="section-head" onclick="toggleSection('s4')">
+    <h3>④ 业务账户入账步骤</h3>
+    <span class="section-badge" id="stepCount">6 步</span>
+    <span class="section-toggle" id="tog-s4">▾</span>
+  </div>
+  <div class="section-body" id="body-s4">
+    <div class="alert alert-info">
+      按步骤顺序执行；负向步骤需确保执行前账户余额充足；日切来源选"实体日切"时自动从步骤的实体配置查取。
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px;gap:6px">
+      <button class="btn btn-dashed btn-sm" onclick="addStep()">＋ 新增步骤</button>
+    </div>
+    <div class="step-wrap">
+      <table class="step-table" id="stepTable">
+        <thead><tr>
+          <th style="min-width:30px">⠿</th>
+          <th style="min-width:36px">#</th>
+          <th style="min-width:90px">业务类型</th>
+          <th style="min-width:140px">实体类型ID</th>
+          <th style="min-width:140px">子账户类型</th>
+          <th style="min-width:80px">单位类型</th>
+          <th style="min-width:70px">单位</th>
+          <th style="min-width:200px">账号映射（类型 + 值）</th>
+          <th style="min-width:200px">金额映射（类型 + 值）</th>
+          <th style="min-width:70px">方向</th>
+          <th style="min-width:170px">币种映射（类型 + 值）</th>
+          <th style="min-width:130px">日切来源</th>
+          <th style="min-width:60px">偏移天</th>
+          <th style="min-width:50px">操作</th>
+        </tr></thead>
+        <tbody id="stepTbody">
+          <!-- Step rows injected by JS -->
+        </tbody>
+      </table>
+    </div>
+    <div class="form-tip" style="margin-top:6px">支持拖拽 ⠿ 调整步骤顺序 &nbsp;|&nbsp; 最多 30 步</div>
+  </div>
+</div>
+
+<!-- ══ S5: 凭证配置 ══ -->
+<div class="section" id="s5">
+  <div class="section-head" onclick="toggleSection('s5')">
+    <h3>⑤ 凭证配置（会计核心分录）</h3>
+    <span class="section-badge" id="jeCount">3 条分录</span>
+    <span class="section-toggle" id="tog-s5">▾</span>
+  </div>
+  <div class="section-body" id="body-s5">
+    <div class="form-grid" style="margin-bottom:12px">
+      <div class="fg">
+        <label class="fl"><span class="req">*</span>凭证类型</label>
+        <select class="fs">
+          <option selected>NORMAL（普通凭证）</option>
+          <option>REVERSAL（红字冲销凭证）</option>
+          <option>ADJUSTMENT（调整凭证）</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">摘要模板 <span class="tip">支持 ${变量}</span></label>
+        <div style="display:flex;gap:6px">
+          <input class="fi" value="${transaction_type}交易-${payment_channel}" style="flex:1">
+          <button class="btn btn-default btn-sm" onclick="alert('变量选择面板（Phase 2）')">插入变量</button>
+        </div>
+        <div class="form-tip">支持引用事件字段，如 ${transaction_type}，运行时动态填充</div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:12px;font-weight:600;color:#595959">分录列表</div>
+      <button class="btn btn-dashed btn-sm" onclick="addJE()">＋ 新增分录</button>
+    </div>
+
+    <div class="je-wrap">
+      <table class="je-table" id="jeTable">
+        <thead><tr>
+          <th style="min-width:36px">#</th>
+          <th style="min-width:80px">科目类型</th>
+          <th style="min-width:180px">科目</th>
+          <th style="min-width:200px">借方金额（类型 + 值）</th>
+          <th style="min-width:140px">借方币种</th>
+          <th style="min-width:200px">贷方金额（类型 + 值）</th>
+          <th style="min-width:140px">贷方币种</th>
+          <th style="min-width:50px">操作</th>
+        </tr></thead>
+        <tbody id="jeTbody">
+        </tbody>
+      </table>
+    </div>
+
+    <div id="balanceCheck" class="balance-pending" style="margin-top:10px">
+      <span>⋯</span> 保存前将自动校验借贷平衡
+    </div>
+
+    <div class="alert alert-warn" style="margin-top:10px">
+      每条分录的借方、贷方至少有一方有值。保存时后端校验所有分录借方总额 = 贷方总额。
+    </div>
+  </div>
+</div>
+
+<!-- ══ S6: 测试验证 ══ -->
+<div class="section" id="s6">
+  <div class="section-head" onclick="toggleSection('s6')">
+    <h3>⑥ 测试验证</h3>
+    <span class="section-toggle" id="tog-s6">▾</span>
+  </div>
+  <div class="section-body" id="body-s6">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <!-- Left: JSON editor -->
+      <div>
+        <div class="json-toolbar" style="justify-content:space-between;margin-bottom:6px">
+          <div class="json-nav">
+            <span>历史事件：</span>
+            <select class="fs" style="width:220px;font-size:11px" onchange="loadHistEvent(this)">
+              <option value="">-- 选择历史事件自动填充 --</option>
+              <option value="1">EVT-20260426-0001 | ¥10,000 | Adyen | MCH_SBX_001</option>
+              <option value="2">EVT-20260426-0002 | ¥5,500 | Adyen | MCH_MCD_002</option>
+              <option value="3">EVT-20260425-0099 | ¥8,800 | Adyen | MCH_XYZ_005</option>
+            </select>
+            <span class="json-nav" id="eventNav" style="display:none">
+              <button class="btn btn-xs btn-default" onclick="prevEvent()">◀</button>
+              <span class="nav-num" id="navNum">1</span> / 5
+              <button class="btn btn-xs btn-default" onclick="nextEvent()">▶</button>
+            </span>
+          </div>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-default btn-sm" onclick="formatTestJson()">格式化</button>
+          </div>
+        </div>
+
+        <label class="fl" style="margin-bottom:4px"><span class="req">*</span>测试报文（JSON）</label>
+        <div class="json-editor" contenteditable="true" id="testJson" style="min-height:220px"><span class="jp">// 点击上方"选择历史事件"自动填充，或手动输入</span>
+{
+  <span class="jk">"event_metadata"</span>: {
+    <span class="jk">"event_id"</span>: <span class="jv">"EVT-20260426-0001"</span>,
+    <span class="jk">"event_time"</span>: <span class="jv">"2026-04-26T14:32:10+09:00"</span>
+  },
+  <span class="jk">"transaction_data"</span>: {
+    <span class="jk">"pay_amount"</span>: <span class="jn">10000</span>,
+    <span class="jk">"transaction_fee"</span>: <span class="jn">300</span>,
+    <span class="jk">"payment_channel"</span>: <span class="jv">"ADYEN_JP"</span>,  <span class="jp">← 触发条件命中 ✓</span>
+    <span class="jk">"merchant_no"</span>: <span class="jv">"MCH_SBX_001"</span>,
+    <span class="jk">"country_code"</span>: <span class="jv">"JP"</span>,          <span class="jp">← 触发条件命中 ✓</span>
+    <span class="jk">"finish_time"</span>: <span class="jv">"2026-04-26T14:32:08+09:00"</span>,
+    <span class="jk">"currency"</span>: <span class="jv">"JPY"</span>
+  }
+}</div>
+        <div class="form-tip" style="margin-top:4px">触发条件命中的字段已用 <span style="color:#5c6370">← 命中 ✓</span> 标注</div>
+      </div>
+
+      <!-- Right: test result -->
+      <div>
+        <label class="fl" style="margin-bottom:6px">测试执行结果</label>
+        <div class="test-result" id="testResult">
+          <div class="test-result-head">
+            <span>待执行 <span class="badge badge-gray">点击"执行测试"</span></span>
+          </div>
+          <div class="test-result-body" id="testResultBody">
+            <div style="color:#888;font-size:12px;text-align:center;padding:20px">执行测试后显示结果</div>
+          </div>
+        </div>
+
+        <div id="balCheckResult" style="margin-top:8px"></div>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-warning" onclick="runTest()">🧪 执行测试</button>
+          <button class="btn btn-default" id="snapshotBtn" disabled onclick="alert('生成分录快照（JSON）')">📄 生成分录快照</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S7: 生命周期 ══ -->
+<div class="section" id="s7">
+  <div class="section-head" onclick="toggleSection('s7')">
+    <h3>⑦ 生命周期与状态控制</h3>
+    <span class="section-toggle" id="tog-s7">▾</span>
+  </div>
+  <div class="section-body" id="body-s7">
+    <div class="form-grid">
+      <div class="fg">
+        <label class="fl"><span class="req">*</span>生效时间类型</label>
+        <select class="fs" id="timeType" onchange="onTimeTypeChange()">
+          <option value="PERMANENT" selected>PERMANENT（永久生效）</option>
+          <option value="TIME_RANGE">TIME_RANGE（时间段生效）</option>
+          <option value="SCHEDULED">SCHEDULED（定时生效）</option>
+        </select>
+      </div>
+      <div class="fg" id="effectiveTimeWrap" style="display:none">
+        <label class="fl"><span class="req">*</span>生效时间</label>
+        <input class="fi" type="datetime-local" id="effectiveTime">
+        <div class="form-tip">不能早于当前时间</div>
+      </div>
+      <div class="fg" id="expiryTimeWrap" style="display:none">
+        <label class="fl"><span class="req">*</span>失效时间</label>
+        <input class="fi" type="datetime-local" id="expiryTime">
+        <div class="form-tip">必须晚于生效时间</div>
+      </div>
+      <div class="fg">
+        <label class="fl"><span class="req">*</span>规则状态</label>
+        <select class="fs" id="lifecycleStatus" onchange="onStatusChange()">
+          <option value="DRAFT" selected>DRAFT（草稿，不参与匹配）</option>
+          <option value="ACTIVE">ACTIVE（已激活，参与入账匹配）</option>
+          <option value="INACTIVE">INACTIVE（已禁用）</option>
+        </select>
+        <div class="form-tip" id="statusTip">草稿状态下规则不会被触发</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end content-area -->
+
+<!-- ── BOTTOM BAR ── -->
+<div class="bottom-bar">
+  <div class="progress-steps">
+    <div class="progress-dot done" title="规则基本信息"></div>
+    <div style="width:20px;height:1px;background:#e4e7ed"></div>
+    <div class="progress-dot active" title="监听数据表"></div>
+    <div style="width:20px;height:1px;background:#e4e7ed"></div>
+    <div class="progress-dot" title="触发条件"></div>
+    <div style="width:20px;height:1px;background:#e4e7ed"></div>
+    <div class="progress-dot" title="业务账户入账"></div>
+    <div style="width:20px;height:1px;background:#e4e7ed"></div>
+    <div class="progress-dot" title="凭证配置"></div>
+    <div style="width:20px;height:1px;background:#e4e7ed"></div>
+    <div class="progress-dot" title="测试验证"></div>
+    <div style="width:20px;height:1px;background:#e4e7ed"></div>
+    <div class="progress-dot" title="生命周期"></div>
+    <span style="margin-left:10px">2 / 7 步骤已完成</span>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-default">← 上一步</button>
+    <button class="btn btn-primary">下一步 →</button>
+  </div>
+</div>
+</div><!-- end main -->
+</div><!-- end layout -->
+
+<script>
+// ── Section toggle ──
+function toggleSection(id) {
+  const body = document.getElementById('body-' + id);
+  const tog = document.getElementById('tog-' + id);
+  if (!body) return;
+  const collapsed = body.classList.toggle('collapsed');
+  tog.textContent = collapsed ? '▸' : '▾';
+}
+
+// ── Tag input ──
+function addTag(e) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const input = document.getElementById('tagInput');
+  const val = input.value.trim();
+  if (!val) return;
+  const chip = document.createElement('span');
+  chip.className = 'tag-chip';
+  chip.innerHTML = val + ' <span class="del" onclick="delTag(this)">×</span>';
+  document.getElementById('tagWrap').insertBefore(chip, input);
+  input.value = '';
+}
+function delTag(el) { el.parentElement.remove(); }
+
+// ── Scroll to section ──
+function scrollTo(id) {
+  document.getElementById(id)?.scrollIntoView({behavior:'smooth', block:'start'});
+  document.querySelectorAll('.nav-step').forEach(s => s.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+// ── Logic button toggle ──
+function toggleLogic(btn, val) {
+  const bar = btn.closest('.logic-bar');
+  bar.querySelectorAll('.logic-btn').forEach(b => b.classList.add('lb-off'));
+  btn.classList.remove('lb-off');
+  btn.classList.add(val === 'AND' ? 'lb-and' : 'lb-or');
+}
+
+// ── Condition rows ──
+let condRowCounter = 10;
+
+function addCondRow(groupId) {
+  condRowCounter++;
+  const id = 'cr' + condRowCounter;
+  const group = document.getElementById(groupId);
+  const bar = group.querySelector('.cond-add-bar');
+  const row = document.createElement('div');
+  row.className = 'cond-row';
+  row.id = id;
+  row.innerHTML = `
+    <div class="drag-h">⠿</div>
+    <select class="mini-sel" onchange="onTableSelect(this)" data-row="${id}">
+      <option value="TXN" selected>交易表</option>
+      <option value="MCH">商户表</option>
+    </select>
+    <select class="mini-sel field-sel" onchange="onFieldSelect(this)" data-row="${id}">
+      <option value="payment_channel" data-type="ENUM" selected>支付渠道</option>
+      <option value="pay_amount" data-type="NUMBER">交易金额</option>
+      <option value="country_code" data-type="ENUM">国家码</option>
+      <option value="transaction_type" data-type="ENUM">交易类型</option>
+    </select>
+    <select class="mini-sel op-sel" data-row="${id}">
+      <option>等于</option><option>不等于</option><option>属于</option>
+    </select>
+    <select class="mini-sel match-type-sel" onchange="onMatchTypeChange(this)" data-row="${id}">
+      <option value="FIXED" selected>固定值</option>
+      <option value="EVENT_FIELD">从事件字段取值</option>
+      <option value="EXPR">表达式</option>
+    </select>
+    <div class="val-cell" id="val-${id}">
+      <input class="mini-in" placeholder="请输入值">
+    </div>
+    <button class="del-btn" onclick="removeCond(this)">×</button>`;
+  group.insertBefore(row, bar);
+}
+
+function removeCond(el) {
+  const row = el.closest('.cond-row');
+  const group = row.closest('.cond-group');
+  const rows = group.querySelectorAll('.cond-row');
+  if (rows.length <= 1) { alert('每个条件组至少保留一条条件'); return; }
+  row.remove();
+}
+
+let groupCounter = 10;
+function addChildGroup(parentId) {
+  groupCounter++;
+  const id = 'cg' + groupCounter;
+  const parent = document.getElementById(parentId);
+  const bar = parent.querySelector('.cond-add-bar');
+  const child = document.createElement('div');
+  child.className = 'cond-group child';
+  child.id = id;
+  child.innerHTML = `
+    <button class="grp-del" onclick="removeGroup('${id}')">×</button>
+    <div class="logic-bar">
+      <button class="logic-btn lb-and" onclick="toggleLogic(this,'AND')">AND</button>
+      <button class="logic-btn lb-off" onclick="toggleLogic(this,'OR')">OR</button>
+      <span class="depth-badge">深度 2/5</span>
+    </div>
+    <div class="cond-row">
+      <div class="drag-h">⠿</div>
+      <select class="mini-sel"><option>交易表</option><option>商户表</option></select>
+      <select class="mini-sel"><option>支付渠道</option><option>交易金额</option></select>
+      <select class="mini-sel"><option>等于</option><option>属于</option></select>
+      <select class="mini-sel"><option>固定值</option><option>从事件字段取值</option></select>
+      <input class="mini-in" placeholder="请输入值" style="flex:1">
+      <button class="del-btn" onclick="removeCond(this)">×</button>
+    </div>
+    <div class="cond-add-bar">
+      <button class="btn btn-dashed btn-xs" onclick="addCondRow('${id}')">＋ 添加条件</button>
+    </div>`;
+  parent.insertBefore(child, bar);
+}
+
+function addRootGroup() {
+  groupCounter++;
+  const id = 'cg' + groupCounter;
+  const root = document.getElementById('condRoot');
+  const newGroup = document.createElement('div');
+  newGroup.className = 'cond-group';
+  newGroup.id = id;
+  newGroup.innerHTML = `
+    <button class="grp-del" onclick="removeGroup('${id}')">×</button>
+    <div class="logic-bar">
+      <button class="logic-btn lb-and" onclick="toggleLogic(this,'AND')">AND</button>
+      <button class="logic-btn lb-off" onclick="toggleLogic(this,'OR')">OR</button>
+      <span class="depth-badge">深度 1/5</span>
+    </div>
+    <div class="cond-row">
+      <div class="drag-h">⠿</div>
+      <select class="mini-sel"><option>交易表</option><option>商户表</option></select>
+      <select class="mini-sel"><option>支付渠道</option><option>交易金额</option></select>
+      <select class="mini-sel"><option>等于</option></select>
+      <select class="mini-sel"><option>固定值</option><option>从事件字段取值</option></select>
+      <input class="mini-in" placeholder="请输入值" style="flex:1">
+      <button class="del-btn" onclick="removeCond(this)">×</button>
+    </div>
+    <div class="cond-add-bar">
+      <button class="btn btn-dashed btn-xs" onclick="addCondRow('${id}')">＋ 添加条件</button>
+      <button class="btn btn-dashed btn-xs" onclick="addChildGroup('${id}')">＋ 添加子组</button>
+    </div>`;
+  root.appendChild(newGroup);
+}
+
+function removeGroup(id) {
+  if (!confirm('确定删除该条件组？')) return;
+  document.getElementById(id)?.remove();
+}
+
+function toggleNot(cb) { /* NOT toggle */ }
+
+// ── Match type → value control ──
+function onMatchTypeChange(sel) {
+  const rowId = sel.dataset.row;
+  const valCell = document.getElementById('val-' + rowId);
+  if (!valCell) return;
+  const type = sel.value;
+  if (type === 'EVENT_FIELD') {
+    valCell.innerHTML = '<input class="mini-in" placeholder="$.transaction_data.xxx">';
+  } else if (type === 'EXPR') {
+    valCell.innerHTML = '<input class="mini-in" placeholder="表达式，如 amount * 0.03">';
+  } else {
+    // restore based on current field type
+    const fieldSel = document.querySelector(`[data-row="${rowId}"].field-sel`);
+    const ft = fieldSel?.selectedOptions[0]?.dataset.type || 'STRING';
+    renderValueControl(valCell, ft);
+  }
+}
+
+function onFieldSelect(sel) {
+  const rowId = sel.dataset.row;
+  const valCell = document.getElementById('val-' + rowId);
+  const matchSel = document.querySelector(`[data-row="${rowId}"].match-type-sel`);
+  if (!valCell || !matchSel || matchSel.value !== 'FIXED') return;
+  const ft = sel.selectedOptions[0]?.dataset.type || 'STRING';
+  const opSel = document.querySelector(`[data-row="${rowId}"].op-sel`);
+  // Update operators
+  const opMap = {
+    STRING: ['等于','不等于','包含','开头为','结尾为','为空','不为空'],
+    NUMBER: ['等于','不等于','大于','大于等于','小于','小于等于','为空','不为空'],
+    DATE: ['等于','不等于','晚于','早于','区间','为空','不为空'],
+    BOOLEAN: ['等于','不等于'],
+    ENUM: ['等于','不等于','属于','不属于']
+  };
+  if (opSel) {
+    const ops = opMap[ft] || opMap.STRING;
+    opSel.innerHTML = ops.map(o => `<option>${o}</option>`).join('');
+  }
+  renderValueControl(valCell, ft);
+}
+
+function renderValueControl(cell, ft) {
+  if (ft === 'ENUM') {
+    cell.innerHTML = `<select class="mini-sel" multiple size="2" style="height:52px">
+      <option>ADYEN_JP</option><option>WORLDPAY_JP</option><option>STRIPE</option>
+    </select>`;
+  } else if (ft === 'NUMBER') {
+    cell.innerHTML = '<input class="mini-in" type="number" placeholder="输入数值">';
+  } else if (ft === 'DATE') {
+    cell.innerHTML = '<input class="mini-in" type="date">';
+  } else if (ft === 'BOOLEAN') {
+    cell.innerHTML = '<select class="mini-sel"><option>true</option><option>false</option></select>';
+  } else {
+    cell.innerHTML = '<input class="mini-in" placeholder="请输入值">';
+  }
+}
+
+function onTableSelect(sel) {
+  const rowId = sel.dataset.row;
+  const fieldSel = document.querySelector(`[data-row="${rowId}"].field-sel`);
+  if (!fieldSel) return;
+  if (sel.value === 'MCH') {
+    fieldSel.innerHTML = `
+      <option value="merchant_no" data-type="STRING">KPay商户号</option>
+      <option value="merchant_name" data-type="STRING">商户名称</option>
+      <option value="merchant_level" data-type="ENUM">商户等级</option>
+      <option value="currency" data-type="ENUM">结算币种</option>
+      <option value="frozen_status" data-type="BOOLEAN">冻结状态</option>`;
+  } else {
+    fieldSel.innerHTML = `
+      <option value="payment_channel" data-type="ENUM">支付渠道</option>
+      <option value="pay_amount" data-type="NUMBER">交易金额</option>
+      <option value="country_code" data-type="ENUM">国家码</option>
+      <option value="transaction_type" data-type="ENUM">交易类型</option>
+      <option value="created_at" data-type="DATE">创建时间</option>
+      <option value="currency" data-type="ENUM">交易币种</option>`;
+  }
+}
+
+// ── Step table ──
+const stepDefs = [
+  {type:'ACQ',entity:'JP_ACQ_KPAY',sub:'Adyen通道应收款',unitType:'CASH',unit:'JPY',accType:'EVENT_FIELD',accVal:'$.payment_channel',amtType:'EVENT_FIELD',amtVal:'$.transaction_data.pay_amount',dir:'正向',curType:'EVENT_FIELD',curVal:'$.transaction_data.currency',daycut:'实体日切',offset:'0'},
+  {type:'ACQ',entity:'JP_ACQ_KPAY',sub:'KPay JP 交易户',unitType:'CASH',unit:'JPY',accType:'FIXED',accVal:'JP_ACQ_KPAY',amtType:'EVENT_FIELD',amtVal:'$.transaction_data.pay_amount',dir:'正向',curType:'EVENT_FIELD',curVal:'$.transaction_data.currency',daycut:'实体日切',offset:'0'},
+  {type:'ACQ',entity:'JP_ACQ_KPAY',sub:'KPay JP 交易户',unitType:'CASH',unit:'JPY',accType:'FIXED',accVal:'JP_ACQ_KPAY',amtType:'EVENT_FIELD',amtVal:'$.transaction_data.transaction_fee',dir:'负向',curType:'EVENT_FIELD',curVal:'$.transaction_data.currency',daycut:'实体日切',offset:'0'},
+  {type:'ACQ',entity:'JP_ACQ_KPAY',sub:'KPay JP 手续费户',unitType:'CASH',unit:'JPY',accType:'FIXED',accVal:'JP_ACQ_KPAY',amtType:'EVENT_FIELD',amtVal:'$.transaction_data.transaction_fee',dir:'正向',curType:'EVENT_FIELD',curVal:'$.transaction_data.currency',daycut:'系统日切',offset:'0'},
+  {type:'ACQ',entity:'JP_ACQ_KPAY',sub:'KPay JP 交易户',unitType:'CASH',unit:'JPY',accType:'FIXED',accVal:'JP_ACQ_KPAY',amtType:'EXPR',amtVal:'$.pay_amount - $.transaction_fee',dir:'负向',curType:'EVENT_FIELD',curVal:'$.transaction_data.currency',daycut:'实体日切',offset:'0'},
+  {type:'ACQ',entity:'JP_ACQ_STORE',sub:'门店交易户',unitType:'CASH',unit:'JPY',accType:'EVENT_FIELD',accVal:'$.transaction_data.kpay_merchant_no',amtType:'REMAINDER',amtVal:'剩余金额',dir:'正向',curType:'EVENT_FIELD',curVal:'$.transaction_data.currency',daycut:'实体日切',offset:'0'},
+];
+
+function renderSteps() {
+  const tb = document.getElementById('stepTbody');
+  tb.innerHTML = '';
+  stepDefs.forEach((s, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:center;color:#ccc;cursor:move">⠿</td>
+      <td class="row-num">${i+1}</td>
+      <td><select class="mini-sel"><option>ACQ</option><option>KBA</option></select></td>
+      <td><select class="mini-sel">
+        <option ${s.entity==='JP_ACQ_KPAY'?'selected':''}>JP_ACQ_KPAY</option>
+        <option ${s.entity==='JP_ACQ_STORE'?'selected':''}>JP_ACQ_STORE</option>
+        <option>JP_ACQ_CHANNEL_ADYEN</option>
+        <option>JP_ACQ_MERCHANT</option>
+      </select></td>
+      <td><select class="mini-sel">
+        <option ${s.sub.includes('通道')?' selected':''}>Adyen通道应收款</option>
+        <option ${s.sub.includes('交易')?'selected':''}>KPay JP 交易户</option>
+        <option ${s.sub.includes('手续')?' selected':''}>KPay JP 手续费户</option>
+        <option ${s.sub.includes('门店')?'selected':''}>门店交易户</option>
+      </select></td>
+      <td><select class="mini-sel"><option>CASH</option><option>POINTS</option></select></td>
+      <td><select class="mini-sel"><option>JPY</option><option>USD</option><option>HKD</option></select></td>
+      <td><div class="mini-tv">
+        <select class="mini-sel" onchange="onMiniTypeChange(this)">
+          <option ${s.accType==='EVENT_FIELD'?'selected':''} value="EVENT_FIELD">事件字段</option>
+          <option ${s.accType==='FIXED'?'selected':''} value="FIXED">固定值</option>
+          <option value="EXPR">表达式</option>
+        </select>
+        <input class="mini-in" value="${s.accVal}" placeholder="${s.accType==='EVENT_FIELD'?'$.xxx':'值'}">
+      </div></td>
+      <td><div class="mini-tv">
+        <select class="mini-sel" onchange="onMiniTypeChange(this)">
+          <option ${s.amtType==='EVENT_FIELD'?'selected':''} value="EVENT_FIELD">事件字段</option>
+          <option ${s.amtType==='FIXED'?'selected':''} value="FIXED">固定值</option>
+          <option ${s.amtType==='EXPR'?'selected':''} value="EXPR">表达式</option>
+          <option ${s.amtType==='REMAINDER'?'selected':''} value="REMAINDER">剩余金额</option>
+        </select>
+        <input class="mini-in" value="${s.amtVal}" placeholder="值/表达式" ${s.amtType==='REMAINDER'?'disabled':''}>
+      </div></td>
+      <td><select class="mini-sel">
+        <option ${s.dir==='正向'?'selected':''} style="color:#52c41a">正向</option>
+        <option ${s.dir==='负向'?'selected':''} style="color:#f56c6c">负向</option>
+      </select></td>
+      <td><div class="mini-tv">
+        <select class="mini-sel"><option selected>事件字段</option><option>固定值</option></select>
+        <input class="mini-in" value="${s.curVal}">
+      </div></td>
+      <td><select class="mini-sel">
+        <option ${s.daycut==='实体日切'?'selected':''}>实体日切</option>
+        <option ${s.daycut==='系统日切'?'selected':''}>系统日切</option>
+      </select></td>
+      <td><input class="mini-in" type="number" value="${s.offset}" style="width:48px;text-align:center"></td>
+      <td style="text-align:center">
+        <button class="del-btn btn-text-gray" onclick="removeStep(this)" title="删除步骤">×</button>
+      </td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('stepCount').textContent = stepDefs.length + ' 步';
+}
+
+function addStep() {
+  const tb = document.getElementById('stepTbody');
+  const n = tb.querySelectorAll('tr').length + 1;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="text-align:center;color:#ccc;cursor:move">⠿</td>
+    <td class="row-num">${n}</td>
+    <td><select class="mini-sel"><option>ACQ</option><option>KBA</option></select></td>
+    <td><select class="mini-sel"><option>JP_ACQ_KPAY</option><option>JP_ACQ_STORE</option><option>JP_ACQ_MERCHANT</option></select></td>
+    <td><select class="mini-sel"><option>KPay JP 交易户</option><option>门店交易户</option></select></td>
+    <td><select class="mini-sel"><option>CASH</option></select></td>
+    <td><select class="mini-sel"><option>JPY</option><option>USD</option></select></td>
+    <td><div class="mini-tv"><select class="mini-sel"><option>事件字段</option><option>固定值</option><option>表达式</option></select><input class="mini-in" placeholder="$.xxx"></div></td>
+    <td><div class="mini-tv"><select class="mini-sel"><option>事件字段</option><option>固定值</option><option>表达式</option><option>剩余金额</option></select><input class="mini-in" placeholder="$.transaction_data.pay_amount"></div></td>
+    <td><select class="mini-sel"><option style="color:#52c41a">正向</option><option style="color:#f56c6c">负向</option></select></td>
+    <td><div class="mini-tv"><select class="mini-sel"><option>事件字段</option></select><input class="mini-in" value="$.transaction_data.currency"></div></td>
+    <td><select class="mini-sel"><option>实体日切</option><option>系统日切</option></select></td>
+    <td><input class="mini-in" type="number" value="0" style="width:48px;text-align:center"></td>
+    <td style="text-align:center"><button class="del-btn btn-text-gray" onclick="removeStep(this)">×</button></td>`;
+  tb.appendChild(tr);
+  document.getElementById('stepCount').textContent = tb.querySelectorAll('tr').length + ' 步';
+}
+
+function removeStep(el) {
+  const tr = el.closest('tr');
+  tr.remove();
+  // renumber
+  document.querySelectorAll('#stepTbody tr').forEach((r,i) => r.cells[1].textContent = i+1);
+  document.getElementById('stepCount').textContent = document.querySelectorAll('#stepTbody tr').length + ' 步';
+}
+
+function onMiniTypeChange(sel) {
+  const input = sel.nextElementSibling;
+  if (!input) return;
+  if (sel.value === 'REMAINDER') {
+    input.value = '剩余金额'; input.disabled = true;
+  } else {
+    input.disabled = false;
+    input.placeholder = sel.value === 'EVENT_FIELD' ? '$.transaction_data.xxx' : '输入值/表达式';
+  }
+}
+
+// ── Journal entries ──
+const jeDefs = [
+  {sub:'资产类',acct:'1121-通道应收款',drType:'EVENT_FIELD',drVal:'$.transaction_data.pay_amount',drCur:'EVENT_FIELD',drCurVal:'$.transaction_data.currency',crType:'',crVal:'',crCur:'',crCurVal:''},
+  {sub:'损益类',acct:'4601-平台手续费收入',drType:'',drVal:'',drCur:'',drCurVal:'',crType:'EVENT_FIELD',crVal:'$.transaction_data.transaction_fee',crCur:'EVENT_FIELD',crCurVal:'$.transaction_data.currency'},
+  {sub:'负债类',acct:'2201-应付商户款-待结算',drType:'',drVal:'',drCur:'',drCurVal:'',crType:'REMAINDER',crVal:'剩余金额',crCur:'EVENT_FIELD',crCurVal:'$.transaction_data.currency'},
+];
+function renderJE() {
+  const tb = document.getElementById('jeTbody');
+  tb.innerHTML = '';
+  jeDefs.forEach((j, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="row-num">${i+1}</td>
+      <td><select class="mini-sel" onchange="onSubjectTypeChange(this)">
+        <option ${j.sub==='资产类'?'selected':''}>资产类</option>
+        <option ${j.sub==='负债类'?'selected':''}>负债类</option>
+        <option>所有者权益类</option>
+        <option ${j.sub==='损益类'?'selected':''}>损益类</option>
+      </select></td>
+      <td><select class="mini-sel" style="width:180px">
+        <option ${j.acct.includes('1121')?'selected':''}>1121-通道应收款</option>
+        <option ${j.acct.includes('4601')?'selected':''}>4601-平台手续费收入</option>
+        <option ${j.acct.includes('2201')?'selected':''}>2201-应付商户款-待结算</option>
+        <option>2202-应付商户款-可提现</option>
+        <option>1122-银行存款</option>
+      </select></td>
+      <td><div class="mini-tv">
+        <select class="mini-sel" onchange="onJETypeChange(this,'dr',${i})">
+          <option value="" ${!j.drType?'selected':''}>无</option>
+          <option value="EVENT_FIELD" ${j.drType==='EVENT_FIELD'?'selected':''}>事件字段</option>
+          <option value="FIXED" ${j.drType==='FIXED'?'selected':''}>固定值</option>
+          <option value="EXPR" ${j.drType==='EXPR'?'selected':''}>表达式</option>
+          <option value="REMAINDER" ${j.drType==='REMAINDER'?'selected':''}>剩余金额</option>
+        </select>
+        <input class="mini-in" value="${j.drVal}" placeholder="值" ${!j.drType?'disabled':''} ${j.drType==='REMAINDER'?'disabled':''}>
+      </div></td>
+      <td><div class="mini-tv">
+        <select class="mini-sel"><option ${j.drCur?'selected':''}>事件字段</option><option>固定值</option><option>无</option></select>
+        <input class="mini-in" value="${j.drCurVal}" placeholder="$.currency" ${!j.drCur?'disabled':''}>
+      </div></td>
+      <td><div class="mini-tv">
+        <select class="mini-sel" onchange="onJETypeChange(this,'cr',${i})">
+          <option value="" ${!j.crType?'selected':''}>无</option>
+          <option value="EVENT_FIELD" ${j.crType==='EVENT_FIELD'?'selected':''}>事件字段</option>
+          <option value="FIXED" ${j.crType==='FIXED'?'selected':''}>固定值</option>
+          <option value="EXPR" ${j.crType==='EXPR'?'selected':''}>表达式</option>
+          <option value="REMAINDER" ${j.crType==='REMAINDER'?'selected':''}>剩余金额</option>
+        </select>
+        <input class="mini-in" value="${j.crVal}" placeholder="值" ${!j.crType?'disabled':''} ${j.crType==='REMAINDER'?'disabled':''}>
+      </div></td>
+      <td><div class="mini-tv">
+        <select class="mini-sel"><option ${j.crCur?'selected':''}>事件字段</option><option>固定值</option><option>无</option></select>
+        <input class="mini-in" value="${j.crCurVal}" placeholder="$.currency" ${!j.crCur?'disabled':''}>
+      </div></td>
+      <td style="text-align:center"><button class="del-btn btn-text-gray" onclick="removeJE(this)">×</button></td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('jeCount').textContent = jeDefs.length + ' 条分录';
+}
+
+function onJETypeChange(sel, side, idx) {
+  const input = sel.nextElementSibling;
+  if (!input) return;
+  if (!sel.value) { input.disabled = true; input.value = ''; }
+  else if (sel.value === 'REMAINDER') { input.disabled = true; input.value = '剩余金额'; }
+  else { input.disabled = false; input.placeholder = sel.value === 'EVENT_FIELD' ? '$.xxx' : '值'; }
+}
+
+function onSubjectTypeChange(sel) {
+  const acctSel = sel.closest('tr').querySelector('.mini-sel:nth-of-type(2)');
+  if (!acctSel) return;
+  const t = sel.value;
+  if (t === '资产类') acctSel.innerHTML = '<option>1121-通道应收款</option><option>1122-银行存款</option>';
+  else if (t === '负债类') acctSel.innerHTML = '<option>2201-应付商户款-待结算</option><option>2202-应付商户款-可提现</option><option>2204-争议冻结</option><option>2205-差错暂记</option>';
+  else if (t === '损益类') acctSel.innerHTML = '<option>4601-平台手续费收入</option><option>4602-退货手续费收入</option><option>5401-通道手续费支出</option>';
+  else acctSel.innerHTML = '<option>3001-实收资本</option>';
+}
+
+function addJE() {
+  const tb = document.getElementById('jeTbody');
+  const n = tb.querySelectorAll('tr').length + 1;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="row-num">${n}</td>
+    <td><select class="mini-sel" onchange="onSubjectTypeChange(this)"><option>资产类</option><option>负债类</option><option>所有者权益类</option><option>损益类</option></select></td>
+    <td><select class="mini-sel" style="width:180px"><option>1121-通道应收款</option><option>1122-银行存款</option></select></td>
+    <td><div class="mini-tv"><select class="mini-sel"><option value="">无</option><option value="EVENT_FIELD">事件字段</option><option value="FIXED">固定值</option><option value="EXPR">表达式</option><option value="REMAINDER">剩余金额</option></select><input class="mini-in" disabled placeholder="值"></div></td>
+    <td><div class="mini-tv"><select class="mini-sel"><option>无</option><option>事件字段</option></select><input class="mini-in" disabled placeholder="$.currency"></div></td>
+    <td><div class="mini-tv"><select class="mini-sel"><option value="">无</option><option value="EVENT_FIELD">事件字段</option><option value="FIXED">固定值</option><option value="REMAINDER">剩余金额</option></select><input class="mini-in" disabled placeholder="值"></div></td>
+    <td><div class="mini-tv"><select class="mini-sel"><option>无</option><option>事件字段</option></select><input class="mini-in" disabled placeholder="$.currency"></div></td>
+    <td style="text-align:center"><button class="del-btn btn-text-gray" onclick="removeJE(this)">×</button></td>`;
+  tb.appendChild(tr);
+  document.getElementById('jeCount').textContent = tb.querySelectorAll('tr').length + ' 条分录';
+}
+
+function removeJE(el) {
+  el.closest('tr').remove();
+  document.querySelectorAll('#jeTbody tr').forEach((r,i) => r.cells[0].textContent = i+1);
+  document.getElementById('jeCount').textContent = document.querySelectorAll('#jeTbody tr').length + ' 条分录';
+}
+
+// ── Lifecycle ──
+function onTimeTypeChange() {
+  const t = document.getElementById('timeType').value;
+  const ew = document.getElementById('effectiveTimeWrap');
+  const xw = document.getElementById('expiryTimeWrap');
+  ew.style.display = (t === 'TIME_RANGE' || t === 'SCHEDULED') ? '' : 'none';
+  xw.style.display = t === 'TIME_RANGE' ? '' : 'none';
+}
+function onStatusChange() {
+  const s = document.getElementById('lifecycleStatus').value;
+  const tip = document.getElementById('statusTip');
+  const msgs = {DRAFT:'草稿状态下规则不会被触发', ACTIVE:'已激活，规则将参与入账事件匹配', INACTIVE:'已禁用，规则不参与匹配'};
+  tip.textContent = msgs[s] || '';
+}
+
+// ── Test ──
+const histEvents = {
+  '1': `{
+  <span class="jk">"event_metadata"</span>: {
+    <span class="jk">"event_id"</span>: <span class="jv">"EVT-20260426-0001"</span>,
+    <span class="jk">"event_time"</span>: <span class="jv">"2026-04-26T14:32:10+09:00"</span>
+  },
+  <span class="jk">"transaction_data"</span>: {
+    <span class="jk">"pay_amount"</span>: <span class="jn">10000</span>,
+    <span class="jk">"transaction_fee"</span>: <span class="jn">300</span>,
+    <span class="jk">"payment_channel"</span>: <span class="jv">"ADYEN_JP"</span>,  <span class="jp">← 触发条件命中 ✓</span>
+    <span class="jk">"merchant_no"</span>: <span class="jv">"MCH_SBX_001"</span>,
+    <span class="jk">"country_code"</span>: <span class="jv">"JP"</span>,          <span class="jp">← 触发条件命中 ✓</span>
+    <span class="jk">"finish_time"</span>: <span class="jv">"2026-04-26T14:32:08+09:00"</span>,
+    <span class="jk">"currency"</span>: <span class="jv">"JPY"</span>
+  }
+}`,
+  '2': `{
+  <span class="jk">"event_metadata"</span>: {
+    <span class="jk">"event_id"</span>: <span class="jv">"EVT-20260426-0002"</span>,
+    <span class="jk">"event_time"</span>: <span class="jv">"2026-04-26T11:00:00+09:00"</span>
+  },
+  <span class="jk">"transaction_data"</span>: {
+    <span class="jk">"pay_amount"</span>: <span class="jn">5500</span>,
+    <span class="jk">"transaction_fee"</span>: <span class="jv">165</span>,
+    <span class="jk">"payment_channel"</span>: <span class="jv">"ADYEN_JP"</span>,  <span class="jp">← 触发条件命中 ✓</span>
+    <span class="jk">"merchant_no"</span>: <span class="jv">"MCH_MCD_002"</span>,
+    <span class="jk">"country_code"</span>: <span class="jv">"JP"</span>,          <span class="jp">← 触发条件命中 ✓</span>
+    <span class="jk">"finish_time"</span>: <span class="jv">"2026-04-26T10:59:50+09:00"</span>,
+    <span class="jk">"currency"</span>: <span class="jv">"JPY"</span>
+  }
+}`,
+};
+
+function loadHistEvent(sel) {
+  const val = sel.value;
+  if (!val || !histEvents[val]) return;
+  document.getElementById('testJson').innerHTML = histEvents[val];
+  document.getElementById('eventNav').style.display = 'flex';
+}
+
+let curEventIdx = 1;
+function prevEvent() {
+  if (curEventIdx > 1) { curEventIdx--; loadFromIdx(); }
+}
+function nextEvent() {
+  if (curEventIdx < 2) { curEventIdx++; loadFromIdx(); }
+}
+function loadFromIdx() {
+  if (histEvents[String(curEventIdx)]) {
+    document.getElementById('testJson').innerHTML = histEvents[String(curEventIdx)];
+    document.getElementById('navNum').textContent = curEventIdx;
+  }
+}
+
+function runTest() {
+  const body = document.getElementById('testResultBody');
+  const balEl = document.getElementById('balCheckResult');
+  body.innerHTML = '<div style="color:#888;font-size:12px;text-align:center;padding:8px">执行中...</div>';
+  setTimeout(() => {
+    body.innerHTML = `
+      <div style="font-size:12px;font-weight:600;color:#595959;margin-bottom:8px">业务账户入账步骤 ✓ 全部成功</div>
+      <div class="result-step"><span class="step-ok">✓</span> 步骤1 | Adyen通道应收款 | 正向 | ¥10,000 JPY | 账户: JP_ACQ_CHANNEL_ADYEN | 会计日: 2026-04-26</div>
+      <div class="result-step"><span class="step-ok">✓</span> 步骤2 | KPay JP 交易户 | 正向 | ¥10,000 JPY | 账户: JP_ACQ_KPAY | 会计日: 2026-04-26</div>
+      <div class="result-step"><span class="step-ok">✓</span> 步骤3 | KPay JP 交易户 | 负向 | ¥300 JPY | 账户: JP_ACQ_KPAY | 会计日: 2026-04-26</div>
+      <div class="result-step"><span class="step-ok">✓</span> 步骤4 | KPay JP 手续费户 | 正向 | ¥300 JPY | 账户: JP_ACQ_KPAY | 日切: 系统</div>
+      <div class="result-step"><span class="step-ok">✓</span> 步骤5 | KPay JP 交易户 | 负向 | ¥9,700 JPY | 账户: JP_ACQ_KPAY | 会计日: 2026-04-26</div>
+      <div class="result-step"><span class="step-ok">✓</span> 步骤6 | 门店交易户 | 正向 | ¥9,700 JPY（剩余）| 账户: MCH_SBX_001 | 会计日: 2026-04-26</div>
+      <div style="font-size:12px;font-weight:600;color:#531dab;margin:10px 0 6px">会计核心分录</div>
+      <div class="je-result head"><div>科目</div><div>借方</div><div>贷方</div><div>备注</div></div>
+      <div class="je-result"><div>1121-通道应收款</div><div class="dr">¥10,000</div><div>—</div><div>取 $.pay_amount</div></div>
+      <div class="je-result"><div>4601-手续费收入</div><div>—</div><div class="cr">¥300</div><div>取 $.transaction_fee</div></div>
+      <div class="je-result"><div>2201-应付商户款-待结算</div><div>—</div><div class="cr">¥9,700</div><div>剩余金额</div></div>
+      <div class="je-result total"><div>合计</div><div class="dr">¥10,000</div><div class="cr">¥10,000</div><div></div></div>`;
+    balEl.innerHTML = '<div class="balance-ok"><span>✓</span> 借贷平衡：借方 ¥10,000 = 贷方 ¥10,000</div>';
+    document.getElementById('snapshotBtn').disabled = false;
+    document.getElementById('testResult').querySelector('.test-result-head span').innerHTML =
+      '测试通过 <span class="badge badge-green">✓ 借贷平衡</span>';
+  }, 800);
+}
+
+function openTestPanel() {
+  document.getElementById('s6').scrollIntoView({behavior:'smooth'});
+  const body = document.getElementById('body-s6');
+  if (body.classList.contains('collapsed')) toggleSection('s6');
+}
+
+// ── Misc ──
+function showJsonCond() {
+  const p = document.getElementById('jsonCondPanel');
+  p.style.display = p.style.display === 'none' ? '' : 'none';
+}
+function checkField(el) { el.style.borderColor = el.value.trim() ? '#52c41a' : '#ff4d4f'; }
+function formatTestJson() { /* format */ }
+function saveDraft() { alert('草稿已保存'); }
+function submitRule() {
+  const name = document.getElementById('ruleName').value.trim();
+  if (!name) { alert('请填写规则名称'); document.getElementById('ruleName').focus(); return; }
+  if (confirm('确认提交审核？提交后进入待审核状态。')) alert('规则已提交审核');
+}
+
+// ── Init ──
+renderSteps();
+renderJE();
+</script>
+</body>
+</html>
