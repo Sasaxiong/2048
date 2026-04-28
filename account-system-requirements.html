@@ -371,6 +371,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
     <div class="nav-group-title">清结算</div>
     <a class="nav-item nav-item-top" href="#s6">清结算设计</a>
     <a class="nav-item" href="#s6-cycle">7.1 结算周期与价值日期</a>
+    <a class="nav-item" href="#s6-cycle-non-special">7.1 自动清机（非特选）</a>
     <a class="nav-item" href="#s6-clear">7.2 清分服务</a>
     <a class="nav-item" href="#s6-payout">7.3 出款流程</a>
     <a class="nav-item" href="#s6-proto">7.4 原型：结算管理</a>
@@ -1636,6 +1637,70 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
       <tbody>
         <tr><td>① PENDING → AVAILABLE</td><td>价值日期（Value Date）≤ 今日；默认 T+1</td><td>PENDING -amount, AVAILABLE +amount</td><td>借：2201 / 贷：2202</td><td>日终批量自动，无需人工</td></tr>
         <tr><td>② AVAILABLE → PAID_OUT</td><td>结算周期到达（每日/周/月）或手动申请</td><td>AVAILABLE -amount</td><td>借：2202 / 贷：1122（银行）</td><td>三层审核后执行</td></tr>
+      </tbody>
+    </table>
+
+    <h4 id="s6-cycle-non-special">自动清机 · 非特选：账单日与预计收款（现行口径）</h4>
+    <p class="muted">下列规则与现行自动清机、<strong>非特选</strong>商户保持一致；不包含 T1/D1「特选」等产品变体。</p>
+    <table class="data-table">
+      <thead>
+        <tr><th>项目</th><th>规则</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>账单日 (D)</strong></td>
+          <td>
+            以<strong>交易完成时间所在日历日</strong>为基准日（不按特选拆分）。结算周期 <strong>Tn</strong>（n = 1、2、3）表示：<strong>账单日 = 基准日起第 n 个日历日后一日</strong>等价表述为：<strong>账单日历日 = 基准日历日 + n</strong>（纯日历顺延，不因周末改写为工作日）。
+            <div style="margin-top:8px;font-size:12px;color:#595959;">
+              示例（与现行数据一致）：T1 · 不跨周末 · 8 月 19 日成交 → 账单日 8 月 20 日；T1 · 跨周末 · 8 月 22 日（周五）成交 → 账单日 8 月 23 日（周六）。T2 · 8 月 19 日 → 8 月 21 日；T2 · 8 月 22 日 → 8 月 24 日（周日）。T3 · 8 月 22 日 → 8 月 25 日。
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>T3 · 周日成交的补充说明</strong></td>
+          <td>
+            现行示例为 <strong>8 月 17 日（周日）</strong>成交 → 账单日 <strong>8 月 21 日（周四）</strong>。若仅按「完成日 + 3 日历日」会得到 8 月 20 日（周三），与示例不符。实现侧须与业务约定下列<strong>其一</strong>：<strong>(A)</strong> 周日成交单独归册：账单日 = 完成日<strong>次周一</strong>起算 + 3 个日历日（周一至周四）；<strong>(B)</strong> 或采用产品给定的周日专用映射表。文档与验收以现行批次结果为准。
+          </td>
+        </tr>
+        <tr>
+          <td><strong>「是否跨周末」标志</strong></td>
+          <td>
+            用于区分<strong>样本场景</strong>（如周五成交 vs 工作日成交），<strong>不参与改写账单日公式</strong>；账单日仍按上表「日历 + n」或 T3 周日约定计算。
+          </td>
+        </tr>
+        <tr>
+          <td><strong>预计收款日</strong></td>
+          <td>
+            <strong>非特选</strong>不在交易完成时锁定具体到账日；在<strong>生成结算单</strong>环节由<strong>财务手动选择</strong>预计收款日（或等价地在出款批次确认时确定）。与「交易时系统自动计算」的特选路径解耦。
+          </td>
+        </tr>
+        <tr>
+          <td><strong>清算日</strong></td>
+          <td>
+            现行参考数据未单列清算日；若需与账单日或通道清算批次对齐，可在结算单生成任务中配置「清算日 = 账单日」或与通道对账文件日期一致，须单独约定。
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="data-table" style="margin-top:12px;">
+      <caption style="caption-side:top;text-align:left;font-weight:600;padding-bottom:8px;">参考对照（现行系统 · 自动清机 · 非特选）</caption>
+      <thead>
+        <tr>
+          <th>结算周期</th>
+          <th>跨周末</th>
+          <th>交易完成（日历）</th>
+          <th>账单日 (D)</th>
+          <th>预计收款日</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>T1</td><td>否</td><td>8 月 19 日</td><td>8 月 20 日</td><td>生成结算单时财务手动选择</td></tr>
+        <tr><td>T1</td><td>是</td><td>8 月 22 日</td><td>8 月 23 日</td><td>生成结算单时财务手动选择</td></tr>
+        <tr><td>T2</td><td>否</td><td>8 月 19 日</td><td>8 月 21 日</td><td>生成结算单时财务手动选择</td></tr>
+        <tr><td>T2</td><td>是</td><td>8 月 22 日</td><td>8 月 24 日</td><td>生成结算单时财务手动选择</td></tr>
+        <tr><td>T3</td><td>否</td><td>8 月 17 日（周日）</td><td>8 月 21 日</td><td>生成结算单时财务手动选择</td></tr>
+        <tr><td>T3</td><td>是</td><td>8 月 22 日</td><td>8 月 25 日</td><td>生成结算单时财务手动选择</td></tr>
       </tbody>
     </table>
 
